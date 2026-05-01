@@ -1,0 +1,30 @@
+<div class="min-h-screen">
+  <header class="border-b border-slate-200/70 bg-white/90 px-6 py-4 backdrop-blur-lg">
+    <div class="mx-auto flex w-full max-w-6xl flex-wrap items-center justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <div class="flex h-9 w-9 items-center justify-center rounded-full bg-brand-600 text-sm font-semibold text-white">BS</div>
+        <div>
+          <p class="text-sm font-semibold text-brand-700">Ben's Services</p>
+          <p class="text-xs text-slate-400">Customer Portal</p>
+        </div>
+      </div>
+      <nav class="flex flex-wrap items-center gap-2">
+        <a
+          *ngFor="let item of navItems"
+          [routerLink]="item.path"
+          routerLinkActive="bg-brand-600 text-white"
+          class="rounded-full px-4 py-2 text-sm font-semibold text-slate-600 transition hover:bg-brand-600 hover:text-white"
+        >
+          {{ item.label }}
+        </a>
+      </nav>
+      <a class="text-sm font-semibold text-slate-500 transition hover:text-slate-900" routerLink="/role">Exit</a>
+    </div>
+  </header>
+
+  <main class="px-6 py-10">
+    <div class="mx-auto w-full max-w-6xl">
+      <router-outlet></router-outlet>
+    </div>
+  </main>
+</div>

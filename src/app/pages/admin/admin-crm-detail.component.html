@@ -1,0 +1,78 @@
+<section class="grid gap-6">
+  <div class="flex flex-wrap items-center justify-between gap-3">
+    <div>
+      <p class="text-sm uppercase tracking-[0.2em] text-slate-400">CRM Account</p>
+      <h2 class="text-2xl font-semibold text-slate-900">{{ account.name }}</h2>
+      <p class="mt-2 text-sm text-slate-500">{{ account.segment }} · {{ account.email }}</p>
+    </div>
+    <div class="flex flex-wrap gap-2">
+      <button class="rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-600">Edit account</button>
+      <button class="rounded-full bg-brand-600 px-4 py-2 text-sm font-semibold text-white">Add site</button>
+    </div>
+  </div>
+
+  <div class="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
+    <div class="card-surface rounded-3xl p-6">
+      <h3 class="text-lg font-semibold text-slate-900">Active contracts</h3>
+      <div class="mt-4 grid gap-3">
+        <div *ngFor="let contract of contracts" class="rounded-2xl bg-white p-4 text-sm shadow-sm">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <p class="font-semibold text-slate-900">{{ contract.name }}</p>
+            <span class="pill pill-blue">{{ contract.status }}</span>
+          </div>
+          <div class="mt-2 flex flex-wrap items-center justify-between gap-2 text-xs text-slate-500">
+            <span>Renewal: {{ contract.renewal }}</span>
+            <span>Value: {{ contract.value }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card-surface rounded-3xl p-6">
+      <h3 class="text-lg font-semibold text-slate-900">Account summary</h3>
+      <div class="mt-4 grid gap-2 text-sm text-slate-600">
+        <div class="flex items-center justify-between">
+          <span>Status</span>
+          <span class="font-semibold text-slate-900">{{ account.status }}</span>
+        </div>
+        <div class="flex items-center justify-between">
+          <span>Last request</span>
+          <span class="font-semibold text-slate-900">{{ account.lastRequest }}</span>
+        </div>
+        <div class="flex items-center justify-between">
+          <span>Lifetime value</span>
+          <span class="font-semibold text-slate-900">{{ account.lifetimeValue }}</span>
+        </div>
+      </div>
+      <div class="mt-4 rounded-2xl bg-slate-900 p-4 text-xs text-white">
+        Dispatch priority: commercial + multi-site coverage
+      </div>
+    </div>
+  </div>
+
+  <div class="grid gap-6 lg:grid-cols-[1.4fr_0.6fr]">
+    <div class="card-surface rounded-3xl p-6">
+      <h3 class="text-lg font-semibold text-slate-900">Sites & SLAs</h3>
+      <div class="mt-4 grid gap-3">
+        <div *ngFor="let site of sites" class="rounded-2xl bg-white p-4 text-sm shadow-sm">
+          <p class="font-semibold text-slate-900">{{ site.name }}</p>
+          <p class="text-xs text-slate-500">{{ site.address }}</p>
+          <div class="mt-2 flex flex-wrap items-center justify-between gap-2 text-xs text-slate-500">
+            <span>Manager: {{ site.manager }}</span>
+            <span class="pill pill-ink">SLA {{ site.sla }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card-surface rounded-3xl p-6">
+      <h3 class="text-lg font-semibold text-slate-900">Contact log</h3>
+      <div class="mt-4 grid gap-3">
+        <div *ngFor="let item of contacts" class="rounded-2xl bg-white p-3 text-xs text-slate-500 shadow-sm">
+          <p class="text-slate-400">{{ item.date }} · {{ item.channel }}</p>
+          <p class="mt-1">{{ item.note }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

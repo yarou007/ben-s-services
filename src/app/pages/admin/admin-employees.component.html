@@ -1,0 +1,16 @@
+<section class="grid gap-6">
+  <div>
+    <p class="text-sm uppercase tracking-[0.2em] text-slate-400">Employees</p>
+    <h2 class="text-2xl font-semibold text-slate-900">Team allocation</h2>
+  </div>
+  <div class="grid gap-4 lg:grid-cols-2">
+    <div *ngFor="let member of team" class="card-surface rounded-2xl p-5">
+      <p class="text-lg font-semibold text-slate-900">{{ member.name }}</p>
+      <p class="text-sm text-slate-500">{{ member.role }} · {{ member.department }}</p>
+      <div class="mt-4 flex flex-wrap items-center gap-3 text-sm">
+        <span class="pill pill-blue">{{ member.status }}</span>
+        <span class="pill pill-orange">Shift: {{ member.shift }}</span>
+      </div>
+    </div>
+  </div>
+</section>

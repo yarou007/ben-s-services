@@ -1,0 +1,23 @@
+import { Component } from '@angular/core';
+import { NgFor, NgClass } from '@angular/common';
+import { invoices } from '../../core/mock-data';
+
+@Component({
+  selector: 'app-admin-invoicing',
+  standalone: true,
+  imports: [NgFor, NgClass],
+  templateUrl: './admin-invoicing.component.html'
+})
+export class AdminInvoicingComponent {
+  invoices = invoices;
+
+  statusClass(status: string): string {
+    if (status === 'Paid') {
+      return 'pill pill-blue';
+    }
+    if (status === 'Overdue') {
+      return 'pill pill-orange';
+    }
+    return 'pill pill-ink';
+  }
+}
