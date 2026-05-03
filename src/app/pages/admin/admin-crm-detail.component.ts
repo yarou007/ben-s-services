@@ -13,4 +13,13 @@ export class AdminCrmDetailComponent {
   contracts = crmContracts;
   sites = crmSites;
   contacts = crmContactLog;
+  uiMessage = '';
+
+  trigger(action: string): void {
+    this.uiMessage = `${action} is currently a UI placeholder in demo mode.`;
+  }
+
+  dismissMessage(): void {
+    this.uiMessage = '';
+  }
 }

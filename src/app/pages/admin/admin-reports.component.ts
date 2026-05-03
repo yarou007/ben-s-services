@@ -10,4 +10,15 @@ import { reportTemplates } from '../../core/mock-data';
 })
 export class AdminReportsComponent {
   reports = reportTemplates;
+  uiMessage = '';
+
+  trigger(action: string, name?: string): void {
+    this.uiMessage = name
+      ? `${action} for ${name} is currently a UI placeholder in demo mode.`
+      : `${action} is currently a UI placeholder in demo mode.`;
+  }
+
+  dismissMessage(): void {
+    this.uiMessage = '';
+  }
 }

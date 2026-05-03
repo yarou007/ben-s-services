@@ -1,17 +1,17 @@
-<div *ngIf="open" class="fixed inset-0 z-40 flex items-center justify-center bg-slate-900/45 p-4" (click)="close.emit()">
-  <section class="w-full max-w-xl rounded-3xl bg-white p-6 shadow-soft" (click)="$event.stopPropagation()">
+<div *ngIf="open" class="app-dialog-overlay" (click)="close.emit()">
+  <section class="app-dialog max-w-xl" role="dialog" aria-modal="true" [attr.aria-label]="title" (click)="$event.stopPropagation()">
     <div class="app-section-head">
       <div>
         <p class="app-kicker">Details</p>
         <h3 class="text-xl font-semibold text-slate-900">{{ title }}</h3>
-        <p *ngIf="subtitle" class="mt-1 text-sm text-slate-500">{{ subtitle }}</p>
+        <p *ngIf="subtitle" class="mt-1 text-sm text-slate-600">{{ subtitle }}</p>
       </div>
-      <button type="button" class="rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-600" (click)="close.emit()">Close</button>
+      <button type="button" class="app-btn app-btn-secondary app-btn-sm" (click)="close.emit()">Close</button>
     </div>
 
     <div class="mt-5 grid gap-3">
       <div *ngFor="let field of fields" class="rounded-2xl bg-slate-50 px-4 py-3 text-sm">
-        <p class="text-xs uppercase tracking-[0.14em] text-slate-400">{{ field.label }}</p>
+        <p class="text-xs uppercase tracking-[0.14em] text-slate-500">{{ field.label }}</p>
         <p class="mt-1 font-semibold text-slate-900">{{ field.value }}</p>
       </div>
     </div>

@@ -12,6 +12,7 @@ export class DashboardStatsCardComponent {
   @Input() value = '';
   @Input() note = '';
   @Input() trend: 'up' | 'down' | 'steady' | '' = '';
+  @Input() comparison = '';
   @Input() interactive = false;
   @Input() active = false;
 
@@ -19,11 +20,31 @@ export class DashboardStatsCardComponent {
 
   get trendClass(): string {
     if (this.trend === 'up') {
-      return 'text-emerald-600';
+      return 'text-emerald-700';
     }
     if (this.trend === 'down') {
-      return 'text-rose-600';
+      return 'text-rose-700';
     }
-    return 'text-slate-500';
+    return 'text-slate-600';
+  }
+
+  get trendLabel(): string {
+    if (this.trend === 'up') {
+      return 'Up';
+    }
+    if (this.trend === 'down') {
+      return 'Down';
+    }
+    return 'Steady';
+  }
+
+  get trendIcon(): string {
+    if (this.trend === 'up') {
+      return '▲';
+    }
+    if (this.trend === 'down') {
+      return '▼';
+    }
+    return '●';
   }
 }

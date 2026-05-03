@@ -1,73 +1,169 @@
-<section class="grid gap-5 sm:gap-6">
+<section class="grid gap-4">
   <app-toast-message [show]="showToast" [message]="toastMessage" [tone]="toastTone" (dismiss)="dismissToast()"></app-toast-message>
 
-  <div class="app-section-head">
+  <header class="app-section-head">
     <div>
       <p class="app-kicker">Admin Dashboard</p>
       <h2 class="app-title">Operations Command Center</h2>
-      <p class="app-subtitle">KPI overview with quick access to request and provider workspaces.</p>
+      <p class="app-subtitle">12-column operations overview with KPI trends, workload comparisons, and live queue controls.</p>
     </div>
-    <button type="button" class="rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700" (click)="exportSnapshot()">Export Snapshot</button>
-  </div>
+    <div class="app-action-row">
+      <a routerLink="/admin/requests" class="app-btn app-btn-secondary">Open Requests</a>
+      <button type="button" class="app-btn app-btn-primary" (click)="exportSnapshot()">Export Snapshot</button>
+    </div>
+  </header>
 
-  <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-    <a *ngFor="let card of cards" [routerLink]="card.path" [queryParams]="card.queryStatus ? { status: card.queryStatus } : null">
-      <app-dashboard-stats-card [label]="card.label" [value]="card.value" [note]="card.note" [trend]="card.trend" [interactive]="true"></app-dashboard-stats-card>
+  <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-10">
+    <a
+      *ngFor="let card of topKpis"
+      [routerLink]="card.path"
+      [queryParams]="card.queryStatus ? { status: card.queryStatus } : null"
+      class="sm:col-span-1 xl:col-span-2"
+      [attr.aria-label]="'Open ' + card.label"
+    >
+      <app-dashboard-stats-card
+        [label]="card.label"
+        [value]="card.value"
+        [note]="card.note"
+        [comparison]="card.comparison"
+        [trend]="card.trend"
+        [interactive]="true"
+      ></app-dashboard-stats-card>
     </a>
   </div>
 
-  <div class="card-surface rounded-3xl p-6">
-    <div class="app-section-head">
-      <div>
-        <h3 class="text-lg font-semibold text-slate-900">Latest requests</h3>
-        <p class="text-xs text-slate-500">Use quick actions for first-response workflows.</p>
+  <div class="grid gap-4 xl:min-h-0 xl:grid-cols-12 xl:grid-rows-[minmax(0,0.88fr)_minmax(0,1.12fr)]">
+    <section class="card-surface rounded-3xl p-4 sm:p-5 xl:col-span-7 xl:min-h-0">
+      <div class="mb-3 flex flex-wrap items-start justify-between gap-2">
+        <div>
+          <h3 class="text-base font-semibold text-slate-900">7-Day Request Trend</h3>
+          <p class="text-xs text-slate-600">Opened vs closed requests by day</p>
+        </div>
+        <div class="flex items-center gap-3 text-xs font-semibold text-slate-700">
+          <span class="inline-flex items-center gap-1"><span class="h-2 w-2 rounded-full bg-brand-500"></span>Opened</span>
+          <span class="inline-flex items-center gap-1"><span class="h-2 w-2 rounded-full bg-emerald-500"></span>Closed</span>
+        </div>
       </div>
-      <a routerLink="/admin/requests" class="rounded-full bg-brand-600 px-4 py-2 text-xs font-semibold text-white">Open Requests Workspace</a>
-    </div>
 
-    <div class="mt-4 grid gap-3" *ngIf="latestRequests.length; else noRequests">
-      <article *ngFor="let request of latestRequests" class="rounded-2xl bg-white p-4 shadow-sm">
-        <div class="flex flex-wrap items-start justify-between gap-2">
-          <div>
-            <p class="text-sm font-semibold text-slate-900">{{ request.title }}</p>
-            <p class="text-xs text-slate-500">{{ request.id }} · {{ request.serviceType }} · {{ request.customerName }}</p>
+      <div class="relative h-[170px] rounded-2xl border border-slate-200 bg-white p-3">
+        <svg viewBox="0 0 540 160" class="h-full w-full" role="img" aria-label="Line chart for opened and closed requests over 7 days">
+          <line x1="0" y1="159" x2="540" y2="159" stroke="#dbe2ec" stroke-width="1"></line>
+          <line x1="0" y1="80" x2="540" y2="80" stroke="#eef2f7" stroke-width="1"></line>
+          <polyline [attr.points]="openedTrendPoints()" fill="none" stroke="#2c8fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"></polyline>
+          <polyline [attr.points]="closedTrendPoints()" fill="none" stroke="#10b981" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"></polyline>
+        </svg>
+      </div>
+
+      <div class="mt-3 grid grid-cols-7 gap-1 text-center text-[11px] font-semibold text-slate-600">
+        <span *ngFor="let point of weeklyTrend">{{ point.label }}</span>
+      </div>
+    </section>
+
+    <section class="card-surface rounded-3xl p-4 sm:p-5 xl:col-span-3 xl:min-h-0 xl:overflow-auto">
+      <h3 class="text-base font-semibold text-slate-900">Service Mix</h3>
+      <p class="mt-0.5 text-xs text-slate-600">Sorted by request volume</p>
+
+      <div class="mt-3 grid gap-2" *ngIf="serviceMix.length; else noServiceMix">
+        <div *ngFor="let item of serviceMix" class="rounded-xl border border-slate-200 bg-white p-2.5">
+          <div class="mb-1 flex items-center justify-between text-xs text-slate-700">
+            <span class="font-semibold">{{ item.label }}</span>
+            <span>{{ item.value }}</span>
           </div>
-          <app-status-badge [status]="request.status"></app-status-badge>
+          <div class="h-2 rounded-full bg-slate-100">
+            <div class="h-full rounded-full" [style.width]="barWidth(item.value)" [ngClass]="barToneClass(item.tone)"></div>
+          </div>
         </div>
-
-        <div class="mt-3 grid gap-2 text-xs text-slate-500 sm:grid-cols-3">
-          <span>Urgency: {{ request.urgency }}</span>
-          <span>City: {{ request.city }}</span>
-          <span>Created: {{ request.createdAt }}</span>
-        </div>
-
-        <div class="mt-3 flex flex-wrap gap-2">
-          <button type="button" class="rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold" (click)="openDetails(request)">View</button>
-          <a [routerLink]="'/admin/requests'" [queryParams]="{ status: request.status }" class="rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold">Filter Similar</a>
-          <button type="button" class="rounded-full border border-emerald-200 px-3 py-1 text-xs font-semibold text-emerald-700 disabled:cursor-not-allowed disabled:opacity-50" [disabled]="request.status === 'COMPLETED'" (click)="quickComplete(request)">Mark Completed</button>
-        </div>
-      </article>
-    </div>
-    <ng-template #noRequests>
-      <app-empty-state title="No request data" description="Requests will appear once submitted by customers."></app-empty-state>
-    </ng-template>
-  </div>
-
-  <div class="grid gap-4 lg:grid-cols-2">
-    <div class="card-surface rounded-3xl p-6">
-      <h3 class="text-lg font-semibold text-slate-900">Workflow shortcuts</h3>
-      <div class="mt-4 grid gap-2 text-sm">
-        <a routerLink="/admin/requests" [queryParams]="{ status: 'PENDING' }" class="rounded-2xl border border-slate-200 px-4 py-3 font-semibold text-slate-700">Pending triage queue</a>
-        <a routerLink="/admin/requests" [queryParams]="{ status: 'ASSIGNED' }" class="rounded-2xl border border-slate-200 px-4 py-3 font-semibold text-slate-700">Assigned dispatch board</a>
-        <a routerLink="/admin/providers" class="rounded-2xl border border-slate-200 px-4 py-3 font-semibold text-slate-700">Provider approvals</a>
       </div>
-    </div>
+      <ng-template #noServiceMix>
+        <app-empty-state title="No service data" description="No records available for chart rendering."></app-empty-state>
+      </ng-template>
+    </section>
 
-    <div class="card-surface rounded-3xl p-6">
-      <h3 class="text-lg font-semibold text-slate-900">Notes</h3>
-      <p class="mt-3 text-sm text-slate-600">This MVP uses an in-memory frontend store. API contracts, routes, and role surfaces remain untouched.</p>
-      <p class="mt-3 text-xs text-slate-500">Use the requests workspace for full filtering, editing, assignment, and CSV exports.</p>
-    </div>
+    <section class="card-surface rounded-3xl p-4 sm:p-5 xl:col-span-2 xl:min-h-0 xl:overflow-auto">
+      <h3 class="text-base font-semibold text-slate-900">Status Mix</h3>
+      <p class="mt-0.5 text-xs text-slate-600">Current workflow balance</p>
+
+      <div class="mt-3 grid gap-2" *ngIf="statusMix.length; else noStatusMix">
+        <div *ngFor="let item of statusMix" class="rounded-xl border border-slate-200 bg-white p-2.5">
+          <div class="mb-1 flex items-center justify-between text-xs text-slate-700">
+            <span class="font-semibold">{{ item.label }}</span>
+            <span>{{ item.value }}</span>
+          </div>
+          <div class="h-2 rounded-full bg-slate-100">
+            <div class="h-full rounded-full" [style.width]="barWidth(item.value)" [ngClass]="barToneClass(item.tone)"></div>
+          </div>
+        </div>
+      </div>
+      <ng-template #noStatusMix>
+        <app-empty-state title="No status data" description="No records available for chart rendering."></app-empty-state>
+      </ng-template>
+    </section>
+
+    <section class="card-surface rounded-3xl p-4 sm:p-5 xl:col-span-12 xl:flex xl:min-h-0 xl:flex-col">
+      <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
+        <div>
+          <h3 class="text-base font-semibold text-slate-900">Latest Requests</h3>
+          <p class="text-xs text-slate-600">Fast actions on current queue</p>
+        </div>
+        <a routerLink="/admin/requests" class="app-btn app-btn-secondary app-btn-sm">Open full workspace</a>
+      </div>
+
+      <div class="app-table-wrap xl:min-h-0 xl:flex-1">
+        <table class="app-table min-w-[880px]">
+          <thead>
+            <tr>
+              <th>Request</th>
+              <th>Customer</th>
+              <th>Status</th>
+              <th>Urgency</th>
+              <th>City</th>
+              <th>Created</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let request of pagedLatestRequests">
+              <td>
+                <p class="font-semibold text-slate-900">{{ request.id }}</p>
+                <p class="text-xs text-slate-600">{{ request.serviceType }}</p>
+              </td>
+              <td>
+                <p class="font-semibold text-slate-900">{{ request.customerName }}</p>
+                <p class="text-xs text-slate-600">{{ request.customerEmail }}</p>
+              </td>
+              <td><app-status-badge [status]="request.status"></app-status-badge></td>
+              <td>{{ request.urgency }}</td>
+              <td>{{ request.city }}</td>
+              <td>{{ request.createdAt }}</td>
+              <td>
+                <div class="flex flex-wrap gap-1">
+                  <button type="button" class="app-btn app-btn-secondary app-btn-xs" (click)="openDetails(request)">View</button>
+                  <button
+                    type="button"
+                    class="app-btn app-btn-secondary app-btn-xs border-emerald-200 text-emerald-800"
+                    [disabled]="request.status === 'COMPLETED'"
+                    (click)="quickComplete(request)"
+                  >
+                    Complete
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="mt-3">
+        <app-pagination-controls
+          [page]="tablePage"
+          [pageSize]="tablePageSize"
+          [total]="latestRequests.length"
+          [pageSizeOptions]="[4, 5, 6, 8]"
+          (pageChange)="tablePageChange($event)"
+          (pageSizeChange)="tablePageSizeChange($event)"
+        ></app-pagination-controls>
+      </div>
+    </section>
   </div>
 
   <app-details-modal

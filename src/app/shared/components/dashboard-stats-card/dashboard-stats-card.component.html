@@ -1,11 +1,22 @@
 <button
   type="button"
   class="card-surface w-full rounded-2xl p-4 text-left"
-  [ngClass]="{ 'ring-2 ring-brand-300': active, 'cursor-pointer': interactive, 'cursor-default': !interactive }"
+  [ngClass]="{
+    'ring-2 ring-brand-300 border-brand-300': active,
+    'cursor-pointer hover:-translate-y-0.5': interactive,
+    'cursor-default opacity-90': !interactive
+  }"
   [disabled]="!interactive"
   (click)="cardClick.emit()"
 >
-  <p class="text-xs uppercase tracking-[0.2em] text-slate-400">{{ label }}</p>
-  <p class="mt-2 text-2xl font-semibold text-slate-900">{{ value }}</p>
-  <p *ngIf="note" class="mt-2 text-xs" [ngClass]="trendClass">{{ note }}</p>
+  <p class="text-xs uppercase tracking-[0.15em] text-slate-500">{{ label }}</p>
+  <div class="mt-2 flex items-end justify-between gap-2">
+    <p class="text-2xl font-semibold text-slate-900">{{ value }}</p>
+    <span *ngIf="trend" class="inline-flex items-center gap-1 rounded-full border border-current/20 px-2 py-0.5 text-[11px] font-semibold" [ngClass]="trendClass">
+      <span aria-hidden="true">{{ trendIcon }}</span>
+      {{ trendLabel }}
+    </span>
+  </div>
+  <p *ngIf="note" class="mt-2 text-xs text-slate-700">{{ note }}</p>
+  <p *ngIf="comparison" class="mt-1 text-[11px] text-slate-500">{{ comparison }}</p>
 </button>

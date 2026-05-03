@@ -14,6 +14,7 @@ export class AdminRequestDetailComponent {
   steps = dispatchSteps;
   providers = dispatchProviders;
   activity = requestActivity;
+  uiMessage = '';
 
   stepClass(status: string): string {
     if (status === 'done') {
@@ -23,5 +24,15 @@ export class AdminRequestDetailComponent {
       return 'border-brand-500 bg-brand-100 text-brand-700';
     }
     return 'border-slate-200 bg-slate-100 text-slate-400';
+  }
+
+  trigger(action: string, target?: string): void {
+    this.uiMessage = target
+      ? `${action} for ${target} is demo-only in this MVP.`
+      : `${action} is demo-only in this MVP.`;
+  }
+
+  dismissMessage(): void {
+    this.uiMessage = '';
   }
 }

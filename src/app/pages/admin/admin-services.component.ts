@@ -10,4 +10,15 @@ import { serviceCatalog } from '../../core/mock-data';
 })
 export class AdminServicesComponent {
   services = serviceCatalog;
+  uiMessage = '';
+
+  trigger(action: string, serviceName?: string): void {
+    this.uiMessage = serviceName
+      ? `${action} for ${serviceName} is a UI placeholder in demo mode.`
+      : `${action} is a UI placeholder in demo mode.`;
+  }
+
+  dismissMessage(): void {
+    this.uiMessage = '';
+  }
 }

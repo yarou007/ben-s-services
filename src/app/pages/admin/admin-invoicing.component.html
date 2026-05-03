@@ -2,31 +2,38 @@
   <div class="app-section-head">
     <div>
       <p class="app-kicker">Invoicing</p>
-      <h2 class="app-title">Financial overview</h2>
+      <h2 class="app-title">Financial Overview</h2>
       <p class="app-subtitle">Track invoice lifecycle, payment status, and sending channels.</p>
     </div>
     <div class="app-action-row">
-      <button class="rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700">Export CSV</button>
-      <button class="rounded-full bg-brand-600 px-4 py-2 text-sm font-semibold text-white">Generate invoice</button>
+      <button type="button" class="app-btn app-btn-secondary" (click)="trigger('Export CSV')">Export CSV</button>
+      <button type="button" class="app-btn app-btn-primary" (click)="trigger('Generate invoice')">Generate invoice</button>
+    </div>
+  </div>
+
+  <div *ngIf="uiMessage" class="rounded-2xl border border-brand-200 bg-brand-50 px-4 py-3 text-sm text-brand-900" role="status" aria-live="polite">
+    <div class="flex items-start justify-between gap-2">
+      <p>{{ uiMessage }}</p>
+      <button type="button" class="app-btn app-btn-ghost app-btn-xs" (click)="dismissMessage()">Dismiss</button>
     </div>
   </div>
 
   <div class="grid gap-4" *ngIf="invoices.length; else noInvoices">
-    <div *ngFor="let invoice of invoices" class="card-surface rounded-2xl p-5">
+    <article *ngFor="let invoice of invoices" class="card-surface rounded-2xl p-5">
       <div class="flex flex-wrap items-center justify-between gap-2">
         <div>
           <p class="text-lg font-semibold text-slate-900">{{ invoice.code }}</p>
-          <p class="text-xs text-slate-500">{{ invoice.client }}</p>
+          <p class="text-xs text-slate-600">{{ invoice.client }}</p>
         </div>
         <span [ngClass]="statusClass(invoice.status)">{{ invoice.status }}</span>
       </div>
-      <div class="mt-3 grid gap-2 text-sm text-slate-600 sm:grid-cols-2 xl:grid-cols-4">
-        <span>Amount: {{ invoice.amount }}</span>
-        <span>Due: {{ invoice.due }}</span>
-        <span>Method: {{ invoice.method }}</span>
-        <span>Sent to: {{ invoice.sentTo }}</span>
+      <div class="mt-3 grid gap-2 text-sm text-slate-700 sm:grid-cols-2 xl:grid-cols-4">
+        <span><strong>Amount:</strong> {{ invoice.amount }}</span>
+        <span><strong>Due:</strong> {{ invoice.due }}</span>
+        <span><strong>Method:</strong> {{ invoice.method }}</span>
+        <span class="line-clamp-2"><strong>Sent to:</strong> {{ invoice.sentTo }}</span>
       </div>
-    </div>
+    </article>
   </div>
 
   <ng-template #noInvoices>

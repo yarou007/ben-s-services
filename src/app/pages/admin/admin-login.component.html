@@ -1,20 +1,59 @@
-<section class="mx-auto max-w-lg">
-  <div class="card-surface rounded-3xl p-6 sm:p-8">
+<section class="mx-auto grid w-full max-w-xl gap-4">
+  <div class="card-surface rounded-3xl p-5 sm:p-8">
     <p class="app-kicker">Admin Access</p>
     <h2 class="app-title">Sign in to manage operations</h2>
     <p class="app-subtitle">Use your operations credentials to access dispatch, CRM, and reporting tools.</p>
 
-    <form class="mt-6 grid gap-4">
-      <label class="grid gap-2 text-sm font-semibold text-slate-600">
-        Email
-        <input class="px-4 py-3 text-sm" placeholder="admin@bensservices.com" />
-      </label>
-      <label class="grid gap-2 text-sm font-semibold text-slate-600">
-        Password
-        <input type="password" class="px-4 py-3 text-sm" placeholder="••••••••" />
-      </label>
-      <button class="rounded-2xl bg-ink px-4 py-3 text-sm font-semibold text-white">Sign in</button>
-      <p class="text-xs text-slate-500">Mock auth only. Backend will be connected later.</p>
+    <form class="mt-6 grid gap-4" (ngSubmit)="submit()" novalidate aria-label="Admin sign in form">
+      <div class="app-field">
+        <label class="app-label" for="adminEmail">Email address</label>
+        <input
+          id="adminEmail"
+          name="adminEmail"
+          type="email"
+          class="app-input"
+          [class.app-input-error]="emailInvalid"
+          placeholder="admin@bensservices.com"
+          autocomplete="email"
+          [(ngModel)]="email"
+          [attr.aria-invalid]="emailInvalid"
+          aria-describedby="adminEmailHelp"
+          (blur)="onBlur('email')"
+        />
+        <p id="adminEmailHelp" class="app-helper-text" [class.app-helper-text-error]="emailInvalid">
+          {{ emailInvalid ? 'Enter a valid email address.' : 'Use your operations email.' }}
+        </p>
+      </div>
+
+      <div class="app-field">
+        <label class="app-label" for="adminPassword">Password</label>
+        <input
+          id="adminPassword"
+          name="adminPassword"
+          type="password"
+          class="app-input"
+          [class.app-input-error]="passwordInvalid"
+          placeholder="Minimum 6 characters"
+          autocomplete="current-password"
+          [(ngModel)]="password"
+          [attr.aria-invalid]="passwordInvalid"
+          aria-describedby="adminPasswordHelp"
+          (blur)="onBlur('password')"
+        />
+        <p id="adminPasswordHelp" class="app-helper-text" [class.app-helper-text-error]="passwordInvalid">
+          {{ passwordInvalid ? 'Password must be at least 6 characters.' : 'Mock auth only in this demo.' }}
+        </p>
+      </div>
+
+      <button type="submit" class="app-btn app-btn-primary w-full" [disabled]="submitting">
+        {{ submitting ? 'Signing in...' : 'Sign in' }}
+      </button>
+
+      <p *ngIf="formMessage" class="rounded-xl px-3 py-2 text-sm" [ngClass]="formMessageTone === 'error' ? 'border border-rose-200 bg-rose-50 text-rose-800' : 'border border-emerald-200 bg-emerald-50 text-emerald-800'">
+        {{ formMessage }}
+      </p>
+
+      <p class="text-xs text-slate-600">Mock authentication is enabled for UI testing. No backend session is created.</p>
     </form>
   </div>
 </section>

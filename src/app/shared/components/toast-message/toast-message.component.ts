@@ -16,11 +16,11 @@ export class ToastMessageComponent {
 
   get toneClass(): string {
     if (this.tone === 'success') {
-      return 'border-emerald-200 bg-emerald-50 text-emerald-800';
+      return 'border-emerald-300 bg-emerald-50 text-emerald-900';
     }
     if (this.tone === 'error') {
-      return 'border-rose-200 bg-rose-50 text-rose-800';
+      return 'border-rose-300 bg-rose-50 text-rose-900';
     }
-    return 'border-brand-200 bg-brand-50 text-brand-800';
+    return 'border-brand-300 bg-brand-50 text-brand-900';
   }
 }

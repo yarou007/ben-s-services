@@ -6,52 +6,98 @@
     title="Customer CRM"
     subtitle="Browse customer accounts, request counts, and latest request status."
   >
-    <button type="button" class="rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700" (click)="resetFilters()">Reset Filters</button>
-    <button type="button" class="rounded-full bg-brand-600 px-4 py-2 text-sm font-semibold text-white" (click)="exportRecords()">Export CSV</button>
+    <button type="button" class="app-btn app-btn-secondary" (click)="resetFilters()">Reset Filters</button>
+    <button type="button" class="app-btn app-btn-primary" (click)="exportRecords()">Export CSV</button>
   </app-page-header>
 
-  <div class="card-surface rounded-3xl p-5 sm:p-6">
+  <section class="card-surface rounded-3xl p-5 sm:p-6">
     <div class="grid gap-3 md:grid-cols-3">
-      <input #searchInput class="rounded-full border border-slate-200 px-4 py-2 text-sm" placeholder="Search name, email, phone" [value]="searchTerm" (input)="searchTerm = searchInput.value; page = 1" />
+      <label class="app-field md:col-span-2">
+        <span class="app-label">Search</span>
+        <input
+          #searchInput
+          class="app-input"
+          placeholder="Name, email, phone"
+          [value]="searchTerm"
+          (input)="searchTerm = searchInput.value; page = 1"
+        />
+      </label>
 
-      <select class="rounded-full border border-slate-200 px-4 py-2 text-sm" [value]="statusFilter" (change)="statusFilter = $any($event.target).value; page = 1">
-        <option value="ALL">Last status: All</option>
-        <option *ngFor="let status of statusOptions" [value]="status">{{ formatStatus(status) }}</option>
-      </select>
-
-      <button type="button" class="rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700" (click)="load()">Refresh</button>
+      <label class="app-field">
+        <span class="app-label">Last status</span>
+        <select class="app-select" [value]="statusFilter" (change)="statusFilter = $any($event.target).value; page = 1">
+          <option value="ALL">All</option>
+          <option *ngFor="let status of statusOptions" [value]="status">{{ formatStatus(status) }}</option>
+        </select>
+      </label>
     </div>
-  </div>
 
-  <div class="grid gap-4" *ngIf="pagedRecords.length; else noRecords">
-    <article *ngFor="let record of pagedRecords" class="card-surface rounded-2xl p-5">
-      <div class="flex flex-wrap items-start justify-between gap-2">
-        <div>
-          <p class="text-lg font-semibold text-slate-900">{{ record.name }}</p>
-          <p class="text-xs text-slate-500">{{ record.email }} · {{ record.phone }}</p>
+    <div class="mt-4 flex justify-end">
+      <button type="button" class="app-btn app-btn-secondary app-btn-sm" (click)="load()">Refresh</button>
+    </div>
+  </section>
+
+  <ng-container *ngIf="pagedRecords.length; else noRecords">
+    <div class="app-mobile-list md:hidden">
+      <article *ngFor="let record of pagedRecords" class="app-mobile-row">
+        <div class="flex items-start justify-between gap-2">
+          <div>
+            <p class="text-sm font-semibold text-slate-900">{{ record.name }}</p>
+            <p class="text-xs text-slate-600">{{ record.email }}</p>
+          </div>
+          <app-status-badge [status]="record.lastStatus"></app-status-badge>
         </div>
-        <app-status-badge [status]="record.lastStatus"></app-status-badge>
-      </div>
+        <div class="app-mobile-meta">
+          <p><strong>Phone:</strong> {{ record.phone }}</p>
+          <p><strong>Requests:</strong> {{ record.requestsCount }}</p>
+          <p><strong>Last updated:</strong> {{ record.lastUpdated }}</p>
+          <p><strong>Cities:</strong> {{ record.cities.join(', ') }}</p>
+        </div>
+        <div class="app-mobile-actions">
+          <button type="button" class="app-btn app-btn-secondary app-btn-xs" (click)="openDetails(record)">View account</button>
+        </div>
+      </article>
+    </div>
 
-      <div class="mt-3 grid gap-2 text-sm text-slate-600 sm:grid-cols-3">
-        <span>Requests: {{ record.requestsCount }}</span>
-        <span>Last updated: {{ record.lastUpdated }}</span>
-        <span>Cities: {{ record.cities.join(', ') }}</span>
-      </div>
+    <div class="app-table-wrap hidden md:block">
+      <table class="app-table min-w-[860px]">
+        <thead>
+          <tr>
+            <th>Customer</th>
+            <th>Email</th>
+            <th>Phone</th>
+            <th>Requests</th>
+            <th>Last Status</th>
+            <th>Last Updated</th>
+            <th>Cities</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let record of pagedRecords">
+            <td class="font-semibold text-slate-900">{{ record.name }}</td>
+            <td>{{ record.email }}</td>
+            <td>{{ record.phone }}</td>
+            <td>{{ record.requestsCount }}</td>
+            <td><app-status-badge [status]="record.lastStatus"></app-status-badge></td>
+            <td>{{ record.lastUpdated }}</td>
+            <td class="line-clamp-2">{{ record.cities.join(', ') }}</td>
+            <td>
+              <button type="button" class="app-btn app-btn-secondary app-btn-xs" (click)="openDetails(record)">View account</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
 
-      <div class="mt-4 flex flex-wrap gap-2">
-        <button type="button" class="rounded-full border border-slate-200 px-3 py-2 text-xs font-semibold" (click)="openDetails(record)">View account</button>
-      </div>
-    </article>
-  </div>
-
-  <app-pagination-controls
-    [page]="page"
-    [pageSize]="pageSize"
-    [total]="filteredRecords.length"
-    (pageChange)="pageChange($event)"
-    (pageSizeChange)="pageSizeChange($event)"
-  ></app-pagination-controls>
+    <app-pagination-controls
+      [page]="page"
+      [pageSize]="pageSize"
+      [total]="filteredRecords.length"
+      (pageChange)="pageChange($event)"
+      (pageSizeChange)="pageSizeChange($event)"
+    ></app-pagination-controls>
+  </ng-container>
 
   <ng-template #noRecords>
     <app-empty-state title="No CRM records found" description="Try changing your filters."></app-empty-state>

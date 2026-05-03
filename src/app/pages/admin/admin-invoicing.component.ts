@@ -10,6 +10,7 @@ import { invoices } from '../../core/mock-data';
 })
 export class AdminInvoicingComponent {
   invoices = invoices;
+  uiMessage = '';
 
   statusClass(status: string): string {
     if (status === 'Paid') {
@@ -19,5 +20,13 @@ export class AdminInvoicingComponent {
       return 'pill pill-orange';
     }
     return 'pill pill-ink';
+  }
+
+  trigger(action: string): void {
+    this.uiMessage = `${action} is currently a UI placeholder in demo mode.`;
+  }
+
+  dismissMessage(): void {
+    this.uiMessage = '';
   }
 }

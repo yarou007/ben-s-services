@@ -6,15 +6,15 @@
     title="Service Requests"
     subtitle="Search, filter, assign providers, update statuses, and export request data."
   >
-    <button type="button" class="rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700" (click)="refreshData()">Refresh</button>
-    <button type="button" class="rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700" (click)="resetFilters()">Reset Filters</button>
-    <button type="button" class="rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700" (click)="exportFiltered()">Export Filtered CSV</button>
-    <button type="button" class="rounded-full bg-brand-600 px-4 py-2 text-sm font-semibold text-white" (click)="exportAllLoaded()">Export All Loaded</button>
+    <button type="button" class="app-btn app-btn-secondary" (click)="refreshData()">Refresh</button>
+    <button type="button" class="app-btn app-btn-secondary" (click)="resetFilters()">Reset Filters</button>
+    <button type="button" class="app-btn app-btn-secondary" (click)="exportFiltered()">Export Filtered CSV</button>
+    <button type="button" class="app-btn app-btn-primary" (click)="exportAllLoaded()">Export All Loaded</button>
   </app-page-header>
 
-  <div class="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs text-amber-800">
+  <aside class="rounded-2xl border border-amber-300 bg-amber-50 px-4 py-3 text-xs text-amber-900">
     Demo-safe behavior: updates are session-based in the frontend store and do not persist to backend yet.
-  </div>
+  </aside>
 
   <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
     <app-dashboard-stats-card
@@ -29,100 +29,158 @@
     ></app-dashboard-stats-card>
   </div>
 
-  <div class="card-surface rounded-3xl p-5 sm:p-6">
-    <div class="grid gap-3 md:grid-cols-2 xl:grid-cols-6">
-      <input
-        #searchInput
-        class="rounded-full border border-slate-200 px-4 py-2 text-sm"
-        placeholder="Search ID, customer, email, city"
-        [value]="searchTerm"
-        (input)="setSearch(searchInput.value)"
-      />
+  <section class="card-surface rounded-3xl p-5 sm:p-6">
+    <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-6">
+      <label class="app-field sm:col-span-2 xl:col-span-2">
+        <span class="app-label">Search</span>
+        <input
+          #searchInput
+          class="app-input"
+          placeholder="ID, customer, email, city"
+          [value]="searchTerm"
+          (input)="setSearch(searchInput.value)"
+        />
+      </label>
 
-      <select class="rounded-full border border-slate-200 px-4 py-2 text-sm" [value]="statusFilter" (change)="applyStatusFilter($any($event.target).value)">
-        <option value="ALL">Status: All</option>
-        <option *ngFor="let status of lifecycleStatuses" [value]="status">{{ formatStatus(status) }}</option>
-      </select>
+      <label class="app-field">
+        <span class="app-label">Status</span>
+        <select class="app-select" [value]="statusFilter" (change)="applyStatusFilter($any($event.target).value)">
+          <option value="ALL">All</option>
+          <option *ngFor="let status of lifecycleStatuses" [value]="status">{{ formatStatus(status) }}</option>
+        </select>
+      </label>
 
-      <select class="rounded-full border border-slate-200 px-4 py-2 text-sm" [value]="serviceFilter" (change)="serviceFilter = $any($event.target).value; page = 1">
-        <option value="ALL">Service: All</option>
-        <option *ngFor="let service of serviceOptions" [value]="service">{{ service }}</option>
-      </select>
+      <label class="app-field">
+        <span class="app-label">Service</span>
+        <select class="app-select" [value]="serviceFilter" (change)="serviceFilter = $any($event.target).value; page = 1">
+          <option value="ALL">All</option>
+          <option *ngFor="let service of serviceOptions" [value]="service">{{ service }}</option>
+        </select>
+      </label>
 
-      <select class="rounded-full border border-slate-200 px-4 py-2 text-sm" [value]="urgencyFilter" (change)="urgencyFilter = $any($event.target).value; page = 1">
-        <option value="ALL">Urgency: All</option>
-        <option *ngFor="let urgency of urgencyOptions" [value]="urgency">{{ urgency }}</option>
-      </select>
+      <label class="app-field">
+        <span class="app-label">Urgency</span>
+        <select class="app-select" [value]="urgencyFilter" (change)="urgencyFilter = $any($event.target).value; page = 1">
+          <option value="ALL">All</option>
+          <option *ngFor="let urgency of urgencyOptions" [value]="urgency">{{ urgency }}</option>
+        </select>
+      </label>
 
-      <select class="rounded-full border border-slate-200 px-4 py-2 text-sm" [value]="cityFilter" (change)="cityFilter = $any($event.target).value; page = 1">
-        <option value="ALL">City: All</option>
-        <option *ngFor="let city of cityOptions" [value]="city">{{ city }}</option>
-      </select>
+      <label class="app-field">
+        <span class="app-label">City</span>
+        <select class="app-select" [value]="cityFilter" (change)="cityFilter = $any($event.target).value; page = 1">
+          <option value="ALL">All</option>
+          <option *ngFor="let city of cityOptions" [value]="city">{{ city }}</option>
+        </select>
+      </label>
+    </div>
 
-      <button type="button" class="rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-600" (click)="setSort('createdAt')">
+    <div class="mt-3 flex flex-wrap justify-end gap-2">
+      <button type="button" class="app-btn app-btn-secondary app-btn-sm" (click)="setSort('createdAt')">
         Sort: {{ sortBy }} ({{ sortDirection }})
       </button>
     </div>
-  </div>
+  </section>
 
   <app-loading-state *ngIf="loading" label="Loading requests..."></app-loading-state>
   <app-error-state *ngIf="!loading && errorMessage" [description]="errorMessage" (retry)="load()"></app-error-state>
 
   <ng-container *ngIf="!loading && !errorMessage">
-    <div class="card-surface rounded-3xl p-0" *ngIf="pagedRequests.length; else noRows">
-      <div class="app-scroll-x">
-        <table class="min-w-full text-sm">
+    <ng-container *ngIf="pagedRequests.length; else noRows">
+      <div class="app-mobile-list md:hidden">
+        <article *ngFor="let request of pagedRequests" class="app-mobile-row">
+          <div class="flex items-start justify-between gap-2">
+            <div>
+              <p class="text-sm font-semibold text-slate-900">{{ request.id }}</p>
+              <p class="text-xs text-slate-600">{{ request.serviceType }} · {{ request.customerName }}</p>
+            </div>
+            <app-status-badge [status]="request.status"></app-status-badge>
+          </div>
+
+          <div class="app-mobile-meta">
+            <p><strong>Location:</strong> {{ request.city }} ({{ request.zip }})</p>
+            <p><strong>Urgency:</strong> {{ request.urgency }}</p>
+            <p><strong>Provider:</strong> {{ providerName(request.assignedProviderId) }}</p>
+            <p><strong>Created:</strong> {{ request.createdAt }}</p>
+          </div>
+
+          <div class="app-mobile-actions">
+            <button type="button" class="app-btn app-btn-secondary app-btn-xs" (click)="openDetails(request)">View</button>
+            <button type="button" class="app-btn app-btn-secondary app-btn-xs" (click)="openStatusModal(request)">Status</button>
+            <button
+              type="button"
+              class="app-btn app-btn-secondary app-btn-xs"
+              [disabled]="!canAssign(request)"
+              (click)="openAssignModal(request)"
+            >
+              Assign
+            </button>
+            <button type="button" class="app-btn app-btn-secondary app-btn-xs" (click)="exportSingle(request)">Export</button>
+            <button
+              type="button"
+              class="app-btn app-btn-danger app-btn-xs"
+              [disabled]="request.status === 'COMPLETED'"
+              (click)="openCancelDialog(request)"
+            >
+              Cancel
+            </button>
+          </div>
+        </article>
+      </div>
+
+      <div class="app-table-wrap hidden md:block">
+        <table class="app-table">
           <thead>
-            <tr class="border-b border-slate-200 bg-slate-50 text-left text-xs uppercase tracking-[0.14em] text-slate-500">
-              <th class="px-4 py-3"><button type="button" (click)="setSort('id')">Request ID</button></th>
-              <th class="px-4 py-3"><button type="button" (click)="setSort('serviceType')">Service</button></th>
-              <th class="px-4 py-3"><button type="button" (click)="setSort('customerName')">Customer</button></th>
-              <th class="px-4 py-3"><button type="button" (click)="setSort('city')">City/ZIP</button></th>
-              <th class="px-4 py-3"><button type="button" (click)="setSort('urgency')">Urgency</button></th>
-              <th class="px-4 py-3"><button type="button" (click)="setSort('status')">Status</button></th>
-              <th class="px-4 py-3">Assigned Provider</th>
-              <th class="px-4 py-3"><button type="button" (click)="setSort('createdAt')">Created</button></th>
-              <th class="px-4 py-3">Actions</th>
+            <tr>
+              <th><button type="button" class="app-table-sort" (click)="setSort('id')">Request ID</button></th>
+              <th><button type="button" class="app-table-sort" (click)="setSort('serviceType')">Service</button></th>
+              <th><button type="button" class="app-table-sort" (click)="setSort('customerName')">Customer</button></th>
+              <th><button type="button" class="app-table-sort" (click)="setSort('city')">City/ZIP</button></th>
+              <th><button type="button" class="app-table-sort" (click)="setSort('urgency')">Urgency</button></th>
+              <th><button type="button" class="app-table-sort" (click)="setSort('status')">Status</button></th>
+              <th>Assigned Provider</th>
+              <th><button type="button" class="app-table-sort" (click)="setSort('createdAt')">Created</button></th>
+              <th>Actions</th>
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let request of pagedRequests" class="border-b border-slate-100 align-top">
-              <td class="px-4 py-3 font-semibold text-slate-900">{{ request.id }}</td>
-              <td class="px-4 py-3">{{ request.serviceType }}</td>
-              <td class="px-4 py-3">
+            <tr *ngFor="let request of pagedRequests">
+              <td class="font-semibold text-slate-900">{{ request.id }}</td>
+              <td>{{ request.serviceType }}</td>
+              <td>
                 <div class="font-semibold text-slate-900">{{ request.customerName }}</div>
-                <div class="text-xs text-slate-500">{{ request.customerEmail }}</div>
+                <div class="text-xs text-slate-600">{{ request.customerEmail }}</div>
               </td>
-              <td class="px-4 py-3">
+              <td>
                 <div>{{ request.city }}</div>
-                <div class="text-xs text-slate-500">{{ request.zip }}</div>
+                <div class="text-xs text-slate-600">{{ request.zip }}</div>
               </td>
-              <td class="px-4 py-3">{{ request.urgency }}</td>
-              <td class="px-4 py-3"><app-status-badge [status]="request.status"></app-status-badge></td>
-              <td class="px-4 py-3">{{ providerName(request.assignedProviderId) }}</td>
-              <td class="px-4 py-3">{{ request.createdAt }}</td>
-              <td class="px-4 py-3">
+              <td>{{ request.urgency }}</td>
+              <td><app-status-badge [status]="request.status"></app-status-badge></td>
+              <td>{{ providerName(request.assignedProviderId) }}</td>
+              <td>{{ request.createdAt }}</td>
+              <td>
                 <div class="flex flex-wrap gap-1">
-                  <button type="button" class="rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold" (click)="openDetails(request)">View</button>
-                  <button type="button" class="rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold" (click)="openStatusModal(request)">Change Status</button>
-                  <button type="button" class="rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold disabled:cursor-not-allowed disabled:opacity-50" [disabled]="!canAssign(request)" (click)="openAssignModal(request)">Assign</button>
-                  <button type="button" class="rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold" (click)="exportSingle(request)">Export</button>
-                  <button type="button" class="rounded-full border border-rose-200 px-3 py-1 text-xs font-semibold text-rose-700" [disabled]="request.status === 'COMPLETED'" (click)="openCancelDialog(request)">Cancel</button>
+                  <button type="button" class="app-btn app-btn-secondary app-btn-xs" (click)="openDetails(request)">View</button>
+                  <button type="button" class="app-btn app-btn-secondary app-btn-xs" (click)="openStatusModal(request)">Change Status</button>
+                  <button type="button" class="app-btn app-btn-secondary app-btn-xs" [disabled]="!canAssign(request)" (click)="openAssignModal(request)">Assign</button>
+                  <button type="button" class="app-btn app-btn-secondary app-btn-xs" (click)="exportSingle(request)">Export</button>
+                  <button type="button" class="app-btn app-btn-danger app-btn-xs" [disabled]="request.status === 'COMPLETED'" (click)="openCancelDialog(request)">Cancel</button>
                 </div>
               </td>
             </tr>
           </tbody>
         </table>
       </div>
-    </div>
 
-    <app-pagination-controls
-      [page]="page"
-      [pageSize]="pageSize"
-      [total]="totalRows"
-      (pageChange)="pageChange($event)"
-      (pageSizeChange)="pageSizeChange($event)"
-    ></app-pagination-controls>
+      <app-pagination-controls
+        [page]="page"
+        [pageSize]="pageSize"
+        [total]="totalRows"
+        (pageChange)="pageChange($event)"
+        (pageSizeChange)="pageSizeChange($event)"
+      ></app-pagination-controls>
+    </ng-container>
   </ng-container>
 
   <ng-template #noRows>
@@ -140,43 +198,43 @@
     (close)="closeDetails()"
   ></app-details-modal>
 
-  <div *ngIf="showStatusModal" class="fixed inset-0 z-40 flex items-center justify-center bg-slate-900/45 p-4" (click)="closeStatusModal()">
-    <section class="w-full max-w-lg rounded-3xl bg-white p-6 shadow-soft" (click)="$event.stopPropagation()">
+  <div *ngIf="showStatusModal" class="app-dialog-overlay" (click)="closeStatusModal()">
+    <section class="app-dialog max-w-lg" role="dialog" aria-modal="true" aria-label="Update request status" (click)="$event.stopPropagation()">
       <div class="app-section-head">
         <div>
           <p class="app-kicker">Update Status</p>
           <h3 class="text-xl font-semibold text-slate-900">{{ selectedRequest?.id }}</h3>
         </div>
-        <button type="button" class="rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold" (click)="closeStatusModal()">Close</button>
+        <button type="button" class="app-btn app-btn-secondary app-btn-sm" (click)="closeStatusModal()">Close</button>
       </div>
 
-      <label class="mt-5 grid gap-2 text-sm font-semibold text-slate-600">
-        New status
-        <select class="px-4 py-3 text-sm" [value]="selectedStatus" (change)="selectedStatus = $any($event.target).value">
+      <label class="app-field mt-5">
+        <span class="app-label">New status</span>
+        <select class="app-select" [value]="selectedStatus" (change)="selectedStatus = $any($event.target).value">
           <option *ngFor="let status of getStatusOptions(selectedRequest)" [value]="status">{{ formatStatus(status) }}</option>
         </select>
       </label>
 
       <div class="mt-5 flex flex-wrap justify-end gap-2">
-        <button type="button" class="rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-600" (click)="closeStatusModal()">Cancel</button>
-        <button type="button" class="rounded-full bg-brand-600 px-4 py-2 text-sm font-semibold text-white" (click)="saveStatus()">Save changes</button>
+        <button type="button" class="app-btn app-btn-secondary" (click)="closeStatusModal()">Cancel</button>
+        <button type="button" class="app-btn app-btn-primary" (click)="saveStatus()">Save changes</button>
       </div>
     </section>
   </div>
 
-  <div *ngIf="showAssignModal" class="fixed inset-0 z-40 flex items-center justify-center bg-slate-900/45 p-4" (click)="closeAssignModal()">
-    <section class="w-full max-w-lg rounded-3xl bg-white p-6 shadow-soft" (click)="$event.stopPropagation()">
+  <div *ngIf="showAssignModal" class="app-dialog-overlay" (click)="closeAssignModal()">
+    <section class="app-dialog max-w-lg" role="dialog" aria-modal="true" aria-label="Assign provider" (click)="$event.stopPropagation()">
       <div class="app-section-head">
         <div>
           <p class="app-kicker">Assign Provider</p>
           <h3 class="text-xl font-semibold text-slate-900">{{ selectedRequest?.id }}</h3>
         </div>
-        <button type="button" class="rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold" (click)="closeAssignModal()">Close</button>
+        <button type="button" class="app-btn app-btn-secondary app-btn-sm" (click)="closeAssignModal()">Close</button>
       </div>
 
-      <label class="mt-5 grid gap-2 text-sm font-semibold text-slate-600">
-        Select provider
-        <select class="px-4 py-3 text-sm" [value]="selectedProviderId" (change)="selectedProviderId = $any($event.target).value">
+      <label class="app-field mt-5">
+        <span class="app-label">Select provider</span>
+        <select class="app-select" [value]="selectedProviderId" (change)="selectedProviderId = $any($event.target).value">
           <option value="" disabled>Select provider</option>
           <option *ngFor="let provider of providers" [value]="provider.id" [disabled]="provider.approvalStatus !== 'ACTIVE'">
             {{ provider.name }} · {{ provider.approvalStatus }} · {{ provider.responseTime }}
@@ -185,8 +243,8 @@
       </label>
 
       <div class="mt-5 flex flex-wrap justify-end gap-2">
-        <button type="button" class="rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-600" (click)="closeAssignModal()">Cancel</button>
-        <button type="button" class="rounded-full bg-brand-600 px-4 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60" [disabled]="!selectedProviderId" (click)="saveAssignment()">Assign provider</button>
+        <button type="button" class="app-btn app-btn-secondary" (click)="closeAssignModal()">Cancel</button>
+        <button type="button" class="app-btn app-btn-primary" [disabled]="!selectedProviderId" (click)="saveAssignment()">Assign provider</button>
       </div>
     </section>
   </div>

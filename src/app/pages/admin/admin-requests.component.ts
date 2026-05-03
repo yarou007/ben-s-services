@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, HostListener } from '@angular/core';
 import { NgClass, NgFor, NgIf } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
 import {
@@ -426,6 +426,16 @@ export class AdminRequestsComponent {
 
   dismissToast(): void {
     this.showToast = false;
+  }
+
+  @HostListener('document:keydown.escape')
+  onEscape(): void {
+    if (this.showStatusModal) {
+      this.closeStatusModal();
+    }
+    if (this.showAssignModal) {
+      this.closeAssignModal();
+    }
   }
 
   formatStatus(status: string): string {
