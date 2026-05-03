@@ -16,9 +16,13 @@ import { AdminReportsComponent } from './pages/admin/admin-reports.component';
 import { CustomerHomeComponent } from './pages/customer/customer-home.component';
 import { CustomerServiceRequestComponent } from './pages/customer/customer-service-request.component';
 import { CustomerTrackRequestComponent } from './pages/customer/customer-track-request.component';
+import { CustomerServicesComponent } from './pages/customer/customer-services.component';
+import { CustomerHelpComponent } from './pages/customer/customer-help.component';
 import { ProviderDashboardComponent } from './pages/provider/provider-dashboard.component';
 import { ProviderProfileComponent } from './pages/provider/provider-profile.component';
 import { ProviderRegisterComponent } from './pages/provider/provider-register.component';
+import { AdminRequestDetailComponent } from './pages/admin/admin-request-detail.component';
+import { AdminCrmDetailComponent } from './pages/admin/admin-crm-detail.component';
 
 export const routes: Routes = [
 	{ path: '', redirectTo: 'role', pathMatch: 'full' },
@@ -36,6 +40,8 @@ export const routes: Routes = [
 			{ path: 'invoicing', component: AdminInvoicingComponent },
 			{ path: 'reports', component: AdminReportsComponent },
 			{ path: 'login', component: AdminLoginComponent },
+			{ path: 'requests/:id', component: AdminRequestDetailComponent },
+			{ path: 'crm/:id', component: AdminCrmDetailComponent },
 			{ path: '', redirectTo: 'dashboard', pathMatch: 'full' }
 		]
 	},
@@ -44,8 +50,10 @@ export const routes: Routes = [
 		component: CustomerLayoutComponent,
 		children: [
 			{ path: 'home', component: CustomerHomeComponent },
+			{ path: 'services', component: CustomerServicesComponent },
 			{ path: 'service-request', component: CustomerServiceRequestComponent },
 			{ path: 'track-request', component: CustomerTrackRequestComponent },
+			{ path: 'help', component: CustomerHelpComponent },
 			{ path: '', redirectTo: 'home', pathMatch: 'full' }
 		]
 	},

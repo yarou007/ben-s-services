@@ -1,0 +1,10 @@
+<div class="app-section-head">
+  <div>
+    <p *ngIf="kicker" class="app-kicker">{{ kicker }}</p>
+    <h2 class="app-title">{{ title }}</h2>
+    <p *ngIf="subtitle" class="app-subtitle">{{ subtitle }}</p>
+  </div>
+  <div class="app-action-row">
+    <ng-content></ng-content>
+  </div>
+</div>

@@ -11,7 +11,9 @@ import { NgFor } from '@angular/common';
 export class CustomerLayoutComponent {
   navItems = [
     { label: 'Home', path: '/customer/home' },
+    { label: 'Services', path: '/customer/services' },
     { label: 'Request Service', path: '/customer/service-request' },
-    { label: 'Track Request', path: '/customer/track-request' }
+    { label: 'Track Request', path: '/customer/track-request' },
+    { label: 'Help', path: '/customer/help' }
   ];
 }

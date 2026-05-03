@@ -1,0 +1,11 @@
+<button
+  type="button"
+  class="card-surface w-full rounded-2xl p-4 text-left"
+  [ngClass]="{ 'ring-2 ring-brand-300': active, 'cursor-pointer': interactive, 'cursor-default': !interactive }"
+  [disabled]="!interactive"
+  (click)="cardClick.emit()"
+>
+  <p class="text-xs uppercase tracking-[0.2em] text-slate-400">{{ label }}</p>
+  <p class="mt-2 text-2xl font-semibold text-slate-900">{{ value }}</p>
+  <p *ngIf="note" class="mt-2 text-xs" [ngClass]="trendClass">{{ note }}</p>
+</button>

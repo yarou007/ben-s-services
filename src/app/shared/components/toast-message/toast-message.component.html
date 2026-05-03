@@ -1,0 +1,6 @@
+<div *ngIf="show" class="rounded-2xl border px-4 py-3 text-sm" [ngClass]="toneClass">
+  <div class="flex items-start justify-between gap-3">
+    <p>{{ message }}</p>
+    <button type="button" class="rounded-full border border-current/25 px-3 py-1 text-xs font-semibold" (click)="dismiss.emit()">Dismiss</button>
+  </div>
+</div>

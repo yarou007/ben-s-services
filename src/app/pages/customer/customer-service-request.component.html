@@ -1,118 +1,105 @@
 <section class="mx-auto max-w-5xl">
   <div class="grid gap-5 lg:grid-cols-[1.2fr_0.8fr] lg:gap-6">
-    <div class="card-surface rounded-3xl p-5 sm:p-7">
+    <div class="card-surface rounded-3xl p-5 sm:p-7" *ngIf="!submittedRequestId; else submittedState">
       <div class="app-section-head">
         <div>
           <p class="app-kicker">Request a Service</p>
-          <h2 class="app-title">We will connect you with a certified technician</h2>
-          <p class="app-subtitle">Provide clear issue details for faster dispatch and better ETA accuracy.</p>
+          <h2 class="app-title">Create a new service request</h2>
+          <p class="app-subtitle">Your request will appear in your dashboard and the admin intake queue.</p>
         </div>
       </div>
 
-      <form class="mt-6 grid gap-4">
-        <div class="grid gap-4 md:grid-cols-2">
-          <label class="grid gap-2 text-sm font-semibold text-slate-600">
-            Full name
-            <input class="px-4 py-3 text-sm" placeholder="John Smith" />
-          </label>
-          <label class="grid gap-2 text-sm font-semibold text-slate-600">
-            Phone number
-            <input class="px-4 py-3 text-sm" placeholder="(555) 123-4567" />
-          </label>
+      <form class="mt-6 grid gap-4" (ngSubmit)="submit()">
+        <div class="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-600">
+          <div class="font-semibold text-slate-900">{{ customer.name }}</div>
+          <div class="text-xs">{{ customer.email }} · {{ customer.phone }}</div>
         </div>
 
         <div class="grid gap-4 md:grid-cols-2">
           <label class="grid gap-2 text-sm font-semibold text-slate-600">
-            Email
-            <input class="px-4 py-3 text-sm" placeholder="john@example.com" />
-          </label>
-          <label class="grid gap-2 text-sm font-semibold text-slate-600">
             Service type
-            <select class="px-4 py-3 text-sm">
+            <select class="px-4 py-3 text-sm" [(ngModel)]="model.serviceType" name="serviceType">
               <option>Locksmith</option>
               <option>Glass Repair</option>
+              <option>Commercial Door Hardware</option>
+            </select>
+          </label>
+
+          <label class="grid gap-2 text-sm font-semibold text-slate-600">
+            Urgency
+            <select class="px-4 py-3 text-sm" [(ngModel)]="model.urgency" name="urgency">
+              <option value="Low">Low</option>
+              <option value="Medium">Medium</option>
+              <option value="High">High</option>
+              <option value="Emergency">Emergency</option>
             </select>
           </label>
         </div>
 
+        <div class="rounded-2xl bg-slate-50 p-3 text-sm">
+          <p class="text-xs text-slate-500">Initial status</p>
+          <div class="mt-1"><app-status-badge [status]="urgencyStatus"></app-status-badge></div>
+        </div>
+
         <label class="grid gap-2 text-sm font-semibold text-slate-600">
           Service description
-          <textarea rows="4" class="px-4 py-3 text-sm" placeholder="Please describe the issue or service you need..."></textarea>
+          <textarea rows="4" class="px-4 py-3 text-sm" [(ngModel)]="model.description" name="description" placeholder="Describe your issue..."></textarea>
         </label>
 
         <label class="grid gap-2 text-sm font-semibold text-slate-600">
-          Service address
-          <input class="px-4 py-3 text-sm" placeholder="123 Main St, New York, NY 10001" />
+          Street address
+          <input class="px-4 py-3 text-sm" [(ngModel)]="model.location" name="location" placeholder="123 Main St" />
         </label>
 
         <div class="grid gap-4 md:grid-cols-2">
           <label class="grid gap-2 text-sm font-semibold text-slate-600">
-            Preferred date
-            <input type="date" class="px-4 py-3 text-sm" />
+            City
+            <input class="px-4 py-3 text-sm" [(ngModel)]="model.city" name="city" placeholder="Brooklyn" />
           </label>
           <label class="grid gap-2 text-sm font-semibold text-slate-600">
-            Preferred time
-            <input type="time" class="px-4 py-3 text-sm" />
+            ZIP code
+            <input class="px-4 py-3 text-sm" [(ngModel)]="model.zip" name="zip" placeholder="11211" />
           </label>
         </div>
 
-        <label class="grid gap-2 text-sm font-semibold text-slate-600">
-          Urgency level
-          <select class="px-4 py-3 text-sm">
-            <option>Non-Emergency</option>
-            <option>Emergency</option>
-          </select>
-        </label>
-
-        <div class="rounded-2xl border border-dashed border-slate-300 bg-white px-4 py-6 text-center text-sm text-slate-500">
-          <p class="font-semibold text-slate-700">Upload photos/videos (optional)</p>
-          <p class="mt-1 text-xs">Drag and drop PNG/JPG/MP4 up to 10MB</p>
-          <button class="mt-3 rounded-full border border-slate-200 px-4 py-2 text-xs font-semibold text-slate-600" type="button">
-            Choose files
-          </button>
-        </div>
+        <p *ngIf="errorMessage" class="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">{{ errorMessage }}</p>
 
         <div class="mt-1 flex flex-wrap gap-3">
-          <a
-            routerLink="/customer/track-request"
-            class="flex-1 rounded-2xl bg-brand-600 px-4 py-3 text-center text-sm font-semibold text-white"
-          >
-            Submit request
-          </a>
-          <a
-            routerLink="/customer/home"
-            class="rounded-2xl border border-slate-200 px-4 py-3 text-center text-sm font-semibold text-slate-600"
-          >
-            Cancel
-          </a>
+          <button type="submit" class="flex-1 rounded-2xl bg-brand-600 px-4 py-3 text-center text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60" [disabled]="submitting">
+            {{ submitting ? 'Submitting...' : 'Submit request' }}
+          </button>
+          <a routerLink="/customer/home" class="rounded-2xl border border-slate-200 px-4 py-3 text-center text-sm font-semibold text-slate-600">Back to dashboard</a>
         </div>
-
-        <p class="text-xs text-slate-500">Mock submission only. Real integration will use .NET + MySQL.</p>
       </form>
     </div>
+
+    <ng-template #submittedState>
+      <div class="card-surface rounded-3xl p-6">
+        <p class="app-kicker">Request Submitted</p>
+        <h3 class="text-xl font-semibold text-slate-900">{{ submittedRequestId }} created successfully</h3>
+        <p class="mt-2 text-sm text-slate-600">You can now track and manage this request from your dashboard.</p>
+
+        <div class="mt-4 flex flex-wrap gap-2">
+          <a routerLink="/customer/home" class="rounded-full bg-brand-600 px-4 py-2 text-sm font-semibold text-white">Go to Dashboard</a>
+          <a routerLink="/customer/track-request" class="rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700">Track Request</a>
+          <button type="button" class="rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700" (click)="resetForm()">Create another</button>
+        </div>
+      </div>
+    </ng-template>
 
     <div class="grid gap-4">
       <div class="card-surface rounded-3xl p-6">
         <p class="app-kicker">What Happens Next</p>
         <ul class="mt-4 grid gap-3 text-sm text-slate-600">
-          <li class="rounded-2xl bg-white p-3 shadow-sm">Request received and validated by the service desk.</li>
-          <li class="rounded-2xl bg-white p-3 shadow-sm">Admin assigns the best technician based on location and availability.</li>
-          <li class="rounded-2xl bg-white p-3 shadow-sm">You receive confirmation with ETA and contact details.</li>
+          <li class="rounded-2xl bg-white p-3 shadow-sm">Admin receives your request and verifies urgency.</li>
+          <li class="rounded-2xl bg-white p-3 shadow-sm">A provider gets assigned based on service area and availability.</li>
+          <li class="rounded-2xl bg-white p-3 shadow-sm">You receive timeline updates through completion.</li>
         </ul>
-        <div class="mt-4 rounded-2xl bg-slate-900 p-4 text-white">
-          <p class="text-sm font-semibold">Estimated response</p>
-          <p class="text-xs text-slate-300">15-30 minutes for emergency requests</p>
-        </div>
       </div>
 
       <div class="card-surface rounded-3xl p-6">
-        <div class="flex items-center justify-between gap-2">
-          <p class="app-kicker">Map Preview</p>
-          <span class="pill pill-ink">Loading</span>
-        </div>
-        <div class="mt-4 flex h-44 items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-4 text-center text-xs text-slate-500">
-          Map integration placeholder. If the map fails to load, address validation remains available through manual entry.
-        </div>
+        <p class="app-kicker">Backend Note</p>
+        <p class="mt-2 text-sm text-slate-600">Requests are saved in the frontend session store for MVP workflows. API persistence will be connected later.</p>
       </div>
     </div>
   </div>

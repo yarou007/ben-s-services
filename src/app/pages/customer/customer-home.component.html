@@ -1,101 +1,192 @@
-<section class="grid gap-6 sm:gap-8">
-  <div class="rounded-3xl bg-gradient-to-r from-brand-700 via-brand-600 to-brand-500 px-5 py-7 text-white shadow-soft sm:px-7 sm:py-10">
-    <div class="grid gap-7 lg:grid-cols-[1.2fr_0.8fr]">
-      <div>
-        <p class="text-xs uppercase tracking-[0.28em] text-white/70 sm:text-sm">24/7 Emergency Service Available</p>
-        <h1 class="mt-3 text-2xl font-semibold sm:text-3xl lg:text-4xl">Professional Locksmith & Glass Repair Services</h1>
-        <p class="mt-4 text-sm text-white/85">
-          Connect with certified technicians in minutes. Track every request with clear milestones and live updates.
-        </p>
-        <div class="mt-6 flex flex-wrap gap-3">
-          <a
-            routerLink="/customer/service-request"
-            class="rounded-full bg-white px-5 py-3 text-sm font-semibold text-brand-700 shadow"
-          >
-            Request Service Now
-          </a>
-          <a
-            routerLink="/customer/track-request"
-            class="rounded-full border border-white/55 px-5 py-3 text-sm font-semibold text-white"
-          >
-            Track a Request
-          </a>
+<section class="grid gap-5 sm:gap-6">
+  <app-toast-message [show]="showToast" [message]="toastMessage" [tone]="toastTone" (dismiss)="dismissToast()"></app-toast-message>
+
+  <app-page-header
+    kicker="Customer Workspace"
+    title="My Service Requests"
+    subtitle="Track status, open details, export summaries, and manage requests."
+  >
+    <a routerLink="/customer/service-request" class="rounded-full bg-brand-600 px-4 py-2 text-sm font-semibold text-white">Create New Request</a>
+    <button type="button" class="rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700" (click)="exportRequests()">Export CSV</button>
+    <button type="button" class="rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700" (click)="resetFilters()">Reset Filters</button>
+  </app-page-header>
+
+  <div class="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-600">
+    Signed in as <span class="font-semibold text-slate-900">{{ customer.name }}</span>
+    <span class="mx-2 text-slate-300">|</span>
+    {{ customer.email }}
+  </div>
+
+  <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+    <app-dashboard-stats-card
+      *ngFor="let card of cards"
+      [label]="card.label"
+      [value]="card.value.toString()"
+      [note]="card.note"
+      [trend]="card.trend"
+      [interactive]="true"
+      [active]="cardFilter === card.key"
+      (cardClick)="setCardFilter(card.key)"
+    ></app-dashboard-stats-card>
+  </div>
+
+  <div class="card-surface rounded-3xl p-5 sm:p-6">
+    <div class="grid gap-3 md:grid-cols-3">
+      <input
+        #searchInput
+        class="rounded-full border border-slate-200 px-4 py-2 text-sm"
+        placeholder="Search ID, service, city"
+        [value]="searchTerm"
+        (input)="searchTerm = searchInput.value; page = 1"
+      />
+
+      <select class="rounded-full border border-slate-200 px-4 py-2 text-sm" [value]="serviceFilter" (change)="serviceFilter = $any($event.target).value; page = 1">
+        <option value="ALL">Service: All</option>
+        <option *ngFor="let service of serviceOptions" [value]="service">{{ service }}</option>
+      </select>
+
+      <select class="rounded-full border border-slate-200 px-4 py-2 text-sm" [value]="cardFilter" (change)="setCardFilter($any($event.target).value)">
+        <option value="ALL">Status group: All</option>
+        <option value="PENDING">Pending</option>
+        <option value="ACTIVE">Active</option>
+        <option value="COMPLETED">Completed</option>
+        <option value="CANCELLED">Cancelled</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="grid gap-4" *ngIf="pagedRequests.length; else noRequests">
+    <article *ngFor="let request of pagedRequests" class="card-surface rounded-2xl p-5">
+      <div class="flex flex-wrap items-start justify-between gap-2">
+        <div>
+          <p class="text-sm font-semibold text-slate-900">{{ request.serviceType }}</p>
+          <p class="text-xs text-slate-500">{{ request.id }} · {{ request.location }}</p>
         </div>
-        <div class="mt-6 grid gap-3 rounded-2xl bg-white/10 p-4 sm:grid-cols-2">
-          <div class="text-xs text-white/80">Search by location</div>
-          <div class="flex items-center gap-2 rounded-full bg-white/20 px-3 py-2 text-xs">
-            <span class="h-2 w-2 rounded-full bg-white"></span>
-            NYC · Newark · Jersey City
+        <app-status-badge [status]="request.status"></app-status-badge>
+      </div>
+
+      <div class="mt-3 grid gap-2 text-sm text-slate-600 sm:grid-cols-2 xl:grid-cols-4">
+        <span>Urgency: {{ request.urgency }}</span>
+        <span>City: {{ request.city }}</span>
+        <span>Created: {{ request.createdAt }}</span>
+        <span>Updated: {{ request.updatedAt }}</span>
+      </div>
+
+      <div class="mt-4 flex flex-wrap gap-2">
+        <button type="button" class="rounded-full border border-slate-200 px-3 py-2 text-xs font-semibold" (click)="openDetails(request)">View details</button>
+        <button type="button" class="rounded-full border border-slate-200 px-3 py-2 text-xs font-semibold disabled:cursor-not-allowed disabled:opacity-50" [disabled]="!canEdit(request)" (click)="openEdit(request)">Edit</button>
+        <button type="button" class="rounded-full border border-rose-200 px-3 py-2 text-xs font-semibold text-rose-700 disabled:cursor-not-allowed disabled:opacity-50" [disabled]="!canCancel(request)" (click)="askCancel(request)">Cancel</button>
+        <button type="button" class="rounded-full border border-slate-200 px-3 py-2 text-xs font-semibold" (click)="downloadSummary(request)">Download Summary</button>
+      </div>
+    </article>
+  </div>
+
+  <app-pagination-controls
+    [page]="page"
+    [pageSize]="pageSize"
+    [total]="filteredRequests.length"
+    (pageChange)="pageChange($event)"
+    (pageSizeChange)="pageSizeChange($event)"
+  ></app-pagination-controls>
+
+  <ng-template #noRequests>
+    <app-empty-state
+      title="You don’t have any service requests yet."
+      description="Create your first request to get matched with a provider."
+      ctaLabel="Create New Request"
+      ctaLink="/customer/service-request"
+    ></app-empty-state>
+  </ng-template>
+
+  <div *ngIf="showDetailsModal && selectedRequest" class="fixed inset-0 z-40 flex items-center justify-center bg-slate-900/45 p-4" (click)="closeDetails()">
+    <section class="w-full max-w-2xl rounded-3xl bg-white p-6 shadow-soft" (click)="$event.stopPropagation()">
+      <div class="app-section-head">
+        <div>
+          <p class="app-kicker">Request Details</p>
+          <h3 class="text-xl font-semibold text-slate-900">{{ selectedRequest.id }}</h3>
+          <p class="mt-1 text-sm text-slate-500">{{ selectedRequest.serviceType }} · {{ selectedRequest.location }}</p>
+        </div>
+        <button type="button" class="rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold" (click)="closeDetails()">Close</button>
+      </div>
+
+      <div class="mt-4 grid gap-3 sm:grid-cols-2">
+        <div class="rounded-2xl bg-slate-50 px-4 py-3 text-sm">
+          <p class="text-xs uppercase tracking-[0.14em] text-slate-400">Status</p>
+          <div class="mt-1"><app-status-badge [status]="selectedRequest.status"></app-status-badge></div>
+        </div>
+        <div class="rounded-2xl bg-slate-50 px-4 py-3 text-sm">
+          <p class="text-xs uppercase tracking-[0.14em] text-slate-400">Urgency</p>
+          <p class="mt-1 font-semibold text-slate-900">{{ selectedRequest.urgency }}</p>
+        </div>
+      </div>
+
+      <div class="mt-5">
+        <p class="text-sm font-semibold text-slate-900">Timeline</p>
+        <div class="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
+          <div *ngFor="let step of timelineFlow" class="rounded-2xl border px-3 py-2 text-xs" [class.border-emerald-300]="timelineReached(selectedRequest.status, step)" [class.bg-emerald-50]="timelineReached(selectedRequest.status, step)" [class.border-slate-200]="!timelineReached(selectedRequest.status, step)" [class.bg-slate-50]="!timelineReached(selectedRequest.status, step)">
+            {{ formatStatus(step) }}
           </div>
         </div>
       </div>
 
-      <div *ngIf="badges.length; else noBadges" class="grid gap-3">
-        <div *ngFor="let badge of badges" class="rounded-2xl bg-white/10 p-4">
-          <p class="text-sm font-semibold">{{ badge.label }}</p>
-          <p class="mt-1 text-xs text-white/70">{{ badge.detail }}</p>
-        </div>
+      <div class="mt-5 rounded-2xl bg-slate-50 px-4 py-3 text-sm text-slate-600">
+        <p class="font-semibold text-slate-900">Notes</p>
+        <p class="mt-1">{{ selectedRequest.notes }}</p>
       </div>
-      <ng-template #noBadges>
-        <div class="rounded-2xl border border-white/30 bg-white/10 p-4 text-sm text-white/80">
-          Service highlights are being refreshed.
-        </div>
-      </ng-template>
-    </div>
+    </section>
   </div>
 
-  <div class="grid gap-4 sm:gap-6 lg:grid-cols-2" *ngIf="services.length; else noFeaturedServices">
-    <div *ngFor="let service of services" class="card-surface rounded-3xl p-6">
-      <div class="flex flex-wrap items-center justify-between gap-2">
-        <p class="text-lg font-semibold text-slate-900">{{ service.title }}</p>
-        <span class="pill pill-blue">Featured</span>
-      </div>
-      <p class="mt-2 text-sm text-slate-500">{{ service.description }}</p>
-      <ul class="mt-4 grid gap-2 text-sm text-slate-600">
-        <li *ngFor="let item of service.items" class="flex items-center gap-2">
-          <span class="h-2 w-2 rounded-full bg-brand-500"></span>
-          {{ item }}
-        </li>
-      </ul>
-    </div>
-  </div>
-  <ng-template #noFeaturedServices>
-    <div class="app-state-block">No featured services are available right now.</div>
-  </ng-template>
-
-  <div class="grid gap-4 sm:gap-6 lg:grid-cols-[1.1fr_0.9fr]">
-    <div class="card-surface rounded-3xl p-6">
-      <p class="app-kicker">Live Status</p>
-      <h3 class="mt-2 text-xl font-semibold text-slate-900">Track your latest request</h3>
-
-      <div class="mt-4 grid gap-3" *ngIf="timeline.length; else noTimeline">
-        <div *ngFor="let item of timeline" class="rounded-2xl bg-white p-3 shadow-sm">
-          <p class="text-xs text-slate-400">{{ item.time }}</p>
-          <p class="text-sm font-semibold text-slate-900">{{ item.title }}</p>
-          <p class="text-xs text-slate-500">{{ item.note }}</p>
+  <div *ngIf="showEditModal && editRequest" class="fixed inset-0 z-40 flex items-center justify-center bg-slate-900/45 p-4" (click)="closeEdit()">
+    <section class="w-full max-w-xl rounded-3xl bg-white p-6 shadow-soft" (click)="$event.stopPropagation()">
+      <div class="app-section-head">
+        <div>
+          <p class="app-kicker">Edit Request</p>
+          <h3 class="text-xl font-semibold text-slate-900">{{ editRequest.id }}</h3>
         </div>
+        <button type="button" class="rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold" (click)="closeEdit()">Close</button>
       </div>
-      <ng-template #noTimeline>
-        <div class="app-state-block mt-4">No recent request updates yet.</div>
-      </ng-template>
 
-      <a routerLink="/customer/track-request" class="mt-4 inline-flex text-sm font-semibold text-brand-700">Track full request</a>
-    </div>
+      <div class="mt-4 grid gap-3">
+        <label class="grid gap-2 text-sm font-semibold text-slate-600">
+          Request title
+          <input class="px-4 py-3 text-sm" [(ngModel)]="editTitle" />
+        </label>
 
-    <div class="grid gap-4" *ngIf="promotions.length; else noPromotions">
-      <div *ngFor="let promo of promotions" class="card-surface rounded-3xl p-6">
-        <p class="text-lg font-semibold text-slate-900">{{ promo.title }}</p>
-        <p class="mt-2 text-sm text-slate-500">{{ promo.detail }}</p>
-        <a
-          routerLink="/customer/service-request"
-          class="mt-4 inline-flex rounded-full bg-ink px-4 py-2 text-xs font-semibold text-white"
-        >
-          {{ promo.cta }}
-        </a>
+        <label class="grid gap-2 text-sm font-semibold text-slate-600">
+          Location
+          <input class="px-4 py-3 text-sm" [(ngModel)]="editLocation" />
+        </label>
+
+        <div class="grid gap-3 sm:grid-cols-2">
+          <label class="grid gap-2 text-sm font-semibold text-slate-600">
+            City
+            <input class="px-4 py-3 text-sm" [(ngModel)]="editCity" />
+          </label>
+          <label class="grid gap-2 text-sm font-semibold text-slate-600">
+            ZIP
+            <input class="px-4 py-3 text-sm" [(ngModel)]="editZip" />
+          </label>
+        </div>
+
+        <label class="grid gap-2 text-sm font-semibold text-slate-600">
+          Notes
+          <textarea rows="3" class="px-4 py-3 text-sm" [(ngModel)]="editNotes"></textarea>
+        </label>
       </div>
-    </div>
-    <ng-template #noPromotions>
-      <div class="app-state-block">No current promotions for your account.</div>
-    </ng-template>
+
+      <div class="mt-5 flex flex-wrap justify-end gap-2">
+        <button type="button" class="rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-600" (click)="closeEdit()">Cancel</button>
+        <button type="button" class="rounded-full bg-brand-600 px-4 py-2 text-sm font-semibold text-white" (click)="saveEdit()">Save changes</button>
+      </div>
+    </section>
   </div>
+
+  <app-confirm-dialog
+    [open]="!!requestToCancel"
+    [title]="'Cancel ' + (requestToCancel?.id || '')"
+    message="This will mark your request as cancelled."
+    confirmLabel="Confirm Cancel"
+    (cancel)="requestToCancel = null"
+    (confirm)="cancelRequest()"
+  ></app-confirm-dialog>
 </section>
