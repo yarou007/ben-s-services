@@ -1,5 +1,5 @@
 import { Component, HostListener } from '@angular/core';
-import { NgClass, NgFor, NgIf } from '@angular/common';
+import { NgFor, NgIf } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
 import {
   PlatformProvider,
@@ -36,7 +36,6 @@ interface AdminStatCard {
   imports: [
     NgFor,
     NgIf,
-    NgClass,
     PageHeaderComponent,
     DashboardStatsCardComponent,
     StatusBadgeComponent,

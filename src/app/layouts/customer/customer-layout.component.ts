@@ -1,6 +1,6 @@
 import { Component, HostListener } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
-import { NgClass, NgFor, NgIf } from '@angular/common';
+import { NgFor, NgIf } from '@angular/common';
 
 interface CustomerNavItem {
   label: string;
@@ -12,7 +12,7 @@ interface CustomerNavItem {
 @Component({
   selector: 'app-customer-layout',
   standalone: true,
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, NgFor, NgIf, NgClass],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, NgFor, NgIf],
   templateUrl: './customer-layout.component.html'
 })
 export class CustomerLayoutComponent {

@@ -1,0 +1,73 @@
+<section class="grid gap-4" aria-label="Provider earnings">
+  <app-toast-message [show]="showToast" [message]="toastMessage" [tone]="toastTone" (dismiss)="dismissToast()"></app-toast-message>
+
+  <header class="card-surface rounded-3xl p-4 sm:p-5">
+    <div class="flex flex-wrap items-end justify-between gap-3">
+      <div>
+        <p class="app-kicker">Financial Insights</p>
+        <h2 class="app-title">Earnings</h2>
+        <p class="app-subtitle">Review performance by period, service category, and operational breakdown.</p>
+      </div>
+      <button type="button" class="app-btn app-btn-primary app-btn-sm" (click)="exportEarnings()">Export data</button>
+    </div>
+
+    <div class="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      <article class="rounded-2xl border border-slate-200 bg-white p-3">
+        <p class="text-xs uppercase tracking-[0.12em] text-slate-500">Total earnings</p>
+        <p class="mt-1 text-2xl font-semibold text-slate-900">{{ totalEarnings | currency:'USD':'symbol':'1.0-0' }}</p>
+        <p class="text-xs text-emerald-700">{{ earningsTrendLabel }} vs previous period</p>
+      </article>
+
+      <article class="rounded-2xl border border-slate-200 bg-white p-3">
+        <p class="text-xs uppercase tracking-[0.12em] text-slate-500">Profitability</p>
+        <p class="mt-1 text-2xl font-semibold text-slate-900">{{ profitabilityPercent }}%</p>
+        <p class="text-xs text-slate-600">
+          Estimated profit {{ profit | currency:'USD':'symbol':'1.0-0' }} (cost model applied)
+        </p>
+      </article>
+
+      <article class="rounded-2xl border border-slate-200 bg-white p-3">
+        <p class="text-xs uppercase tracking-[0.12em] text-slate-500">Earnings per hour</p>
+        <p class="mt-1 text-2xl font-semibold text-slate-900">{{ earningsPerHour | currency:'USD':'symbol':'1.0-0' }}</p>
+        <p class="text-xs text-slate-600">{{ totalHours | number:'1.1-1' }} tracked hours</p>
+      </article>
+
+      <article class="rounded-2xl border border-slate-200 bg-white p-3">
+        <p class="text-xs uppercase tracking-[0.12em] text-slate-500">Estimated costs</p>
+        <p class="mt-1 text-2xl font-semibold text-slate-900">{{ estimatedCost | currency:'USD':'symbol':'1.0-0' }}</p>
+        <p class="text-xs text-slate-600">Based on blended operations ratio</p>
+      </article>
+    </div>
+  </header>
+
+  <section class="card-surface rounded-3xl p-4 sm:p-5">
+    <div class="grid gap-3 sm:grid-cols-2">
+      <label class="app-field">
+        <span class="app-label">Revenue period</span>
+        <select class="app-select" [value]="period" (change)="setPeriod($any($event.target).value)">
+          <option value="daily">Daily</option>
+          <option value="weekly">Weekly</option>
+          <option value="monthly">Monthly</option>
+        </select>
+      </label>
+
+      <label class="app-field">
+        <span class="app-label">Breakdown by</span>
+        <select class="app-select" [value]="breakdownMode" (change)="setBreakdown($any($event.target).value)">
+          <option value="location">Location</option>
+          <option value="employee">Employee</option>
+        </select>
+      </label>
+    </div>
+  </section>
+
+  <div class="grid gap-4 xl:grid-cols-2">
+    <app-provider-earnings-chart [points]="earningsByPeriod" title="Revenue by Period"></app-provider-earnings-chart>
+    <app-provider-category-chart [bars]="revenueByService" title="Revenue by Service Category"></app-provider-category-chart>
+  </div>
+
+  <app-provider-category-chart
+    [bars]="revenueByBreakdown"
+    [title]="breakdownMode === 'location' ? 'Revenue by Location' : 'Revenue by Employee'"
+  ></app-provider-category-chart>
+</section>

@@ -1,0 +1,134 @@
+<section class="grid gap-4" aria-label="Provider requests">
+  <app-toast-message [show]="showToast" [message]="toastMessage" [tone]="toastTone" (dismiss)="dismissToast()"></app-toast-message>
+
+  <header class="card-surface rounded-3xl p-4 sm:p-5">
+    <div class="flex flex-wrap items-end justify-between gap-3">
+      <div>
+        <p class="app-kicker">Task Management</p>
+        <h2 class="app-title">Requests</h2>
+        <p class="app-subtitle">Review incoming jobs, update statuses, and complete assignments.</p>
+      </div>
+      <button type="button" class="app-btn app-btn-secondary app-btn-sm" (click)="reload()">Refresh</button>
+    </div>
+
+    <div class="mt-4 grid gap-3 lg:grid-cols-4">
+      <label class="app-field lg:col-span-2">
+        <span class="app-label">Search requests</span>
+        <input
+          class="app-input"
+          placeholder="Search by ID, customer, service, location"
+          [value]="searchTerm"
+          (input)="searchTerm = $any($event.target).value"
+        />
+      </label>
+
+      <label class="app-field">
+        <span class="app-label">Status</span>
+        <select class="app-select" [value]="statusFilter" (change)="statusFilter = $any($event.target).value">
+          <option value="ALL">All statuses</option>
+          <option value="PENDING">Pending</option>
+          <option value="ACTIVE">Active</option>
+          <option value="COMPLETED">Completed</option>
+          <option value="CANCELLED">Cancelled</option>
+        </select>
+      </label>
+
+      <label class="app-field">
+        <span class="app-label">Date range</span>
+        <select class="app-select" [value]="dateFilter" (change)="dateFilter = $any($event.target).value">
+          <option value="ALL">All dates</option>
+          <option value="TODAY">Today</option>
+          <option value="NEXT_7">Next 7 days</option>
+          <option value="NEXT_30">Next 30 days</option>
+        </select>
+      </label>
+
+      <label class="app-field lg:col-span-2">
+        <span class="app-label">Service category</span>
+        <select class="app-select" [value]="serviceFilter" (change)="serviceFilter = $any($event.target).value">
+          <option value="ALL">All services</option>
+          <option *ngFor="let service of serviceOptions" [value]="service">{{ service }}</option>
+        </select>
+      </label>
+    </div>
+  </header>
+
+  <section *ngIf="filteredJobs.length; else noRequests" class="grid gap-3">
+    <article *ngFor="let job of filteredJobs" class="card-surface rounded-2xl p-4">
+      <div class="flex flex-wrap items-start justify-between gap-3">
+        <div class="min-w-0">
+          <p class="truncate text-sm font-semibold text-slate-900">{{ job.title }}</p>
+          <p class="mt-1 text-xs text-slate-500">{{ job.id }} · {{ job.requestId }} · {{ job.serviceType }}</p>
+        </div>
+        <app-status-badge [status]="job.status"></app-status-badge>
+      </div>
+
+      <dl class="mt-3 grid gap-2 text-sm text-slate-700 sm:grid-cols-2 xl:grid-cols-4">
+        <div>
+          <dt class="text-xs uppercase tracking-[0.12em] text-slate-500">Customer</dt>
+          <dd>{{ job.customerName }}</dd>
+        </div>
+        <div>
+          <dt class="text-xs uppercase tracking-[0.12em] text-slate-500">Scheduled</dt>
+          <dd>{{ scheduledDate(job) }}</dd>
+        </div>
+        <div>
+          <dt class="text-xs uppercase tracking-[0.12em] text-slate-500">Location</dt>
+          <dd>{{ job.location }}</dd>
+        </div>
+        <div>
+          <dt class="text-xs uppercase tracking-[0.12em] text-slate-500">Urgency</dt>
+          <dd>{{ job.urgency }}</dd>
+        </div>
+      </dl>
+
+      <div class="mt-4 flex flex-wrap gap-2" aria-label="Request actions">
+        <button
+          type="button"
+          class="app-btn app-btn-primary app-btn-xs"
+          [disabled]="!canAccept(job)"
+          (click)="accept(job)"
+        >
+          <span aria-hidden="true">+</span>
+          Accept
+        </button>
+
+        <button
+          type="button"
+          class="app-btn app-btn-danger app-btn-xs"
+          [disabled]="!canDecline(job)"
+          (click)="decline(job)"
+        >
+          <span aria-hidden="true">x</span>
+          Decline
+        </button>
+
+        <button
+          type="button"
+          class="app-btn app-btn-secondary app-btn-xs"
+          [disabled]="!canStart(job)"
+          (click)="start(job)"
+        >
+          <span aria-hidden="true">&gt;</span>
+          Start
+        </button>
+
+        <button
+          type="button"
+          class="app-btn app-btn-secondary app-btn-xs"
+          [disabled]="!canComplete(job)"
+          (click)="complete(job)"
+        >
+          <span aria-hidden="true">#</span>
+          Complete
+        </button>
+      </div>
+    </article>
+  </section>
+
+  <ng-template #noRequests>
+    <div class="card-surface rounded-2xl p-6 text-center text-sm text-slate-600">
+      No requests match your current filters.
+    </div>
+  </ng-template>
+</section>

@@ -1,0 +1,56 @@
+<article class="card-surface rounded-3xl p-4 sm:p-5">
+  <div class="flex items-center justify-between gap-3">
+    <h3 class="text-sm font-semibold text-slate-900">{{ title }}</h3>
+    <p class="text-xs text-slate-500" *ngIf="points.length">Peak: {{ maxValue | currency:'USD':'symbol':'1.0-0' }}</p>
+  </div>
+
+  <div *ngIf="points.length; else noData" class="mt-4">
+    <svg
+      class="h-[190px] w-full overflow-visible"
+      [attr.viewBox]="'0 0 ' + chartWidth + ' ' + chartHeight"
+      role="img"
+      aria-label="Line chart showing earnings over time"
+      preserveAspectRatio="none"
+    >
+      <g *ngFor="let tick of yTicks()">
+        <line
+          [attr.x1]="chartPadding"
+          [attr.x2]="chartWidth - chartPadding"
+          [attr.y1]="pointY(tick)"
+          [attr.y2]="pointY(tick)"
+          stroke="rgba(148, 163, 184, 0.24)"
+          stroke-dasharray="3 3"
+        />
+      </g>
+
+      <polyline
+        [attr.points]="polyline"
+        fill="none"
+        stroke="#1f72e6"
+        stroke-width="2.5"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      />
+
+      <circle
+        *ngFor="let point of points; let index = index"
+        [attr.cx]="pointX(index)"
+        [attr.cy]="pointY(point.value)"
+        r="3.8"
+        fill="#1f72e6"
+      >
+        <title>{{ point.label }} - {{ point.value | currency:'USD':'symbol':'1.0-0' }}</title>
+      </circle>
+    </svg>
+
+    <div class="mt-2 grid grid-cols-4 gap-2 text-[11px] text-slate-500 sm:grid-cols-8">
+      <span *ngFor="let point of points" class="truncate">{{ point.label }}</span>
+    </div>
+  </div>
+
+  <ng-template #noData>
+    <div class="mt-4 rounded-2xl border border-dashed border-slate-300 px-3 py-6 text-center text-sm text-slate-500">
+      {{ emptyMessage }}
+    </div>
+  </ng-template>
+</article>

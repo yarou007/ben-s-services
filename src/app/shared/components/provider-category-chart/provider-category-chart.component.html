@@ -1,0 +1,26 @@
+<article class="card-surface rounded-3xl p-4 sm:p-5">
+  <h3 class="text-sm font-semibold text-slate-900">{{ title }}</h3>
+
+  <div *ngIf="bars.length; else noBars" class="mt-4 grid gap-3">
+    <div *ngFor="let bar of bars" class="grid gap-1.5">
+      <div class="flex items-center justify-between gap-3 text-xs text-slate-600">
+        <span class="font-semibold text-slate-800">{{ bar.label }}</span>
+        <span>{{ bar.value }}</span>
+      </div>
+      <div class="h-2.5 rounded-full bg-slate-100">
+        <div
+          class="h-full rounded-full bg-gradient-to-r from-brand-500 to-brand-300"
+          [style.width.%]="widthPercent(bar.value)"
+          [attr.aria-label]="bar.label + ' jobs'"
+          role="img"
+        ></div>
+      </div>
+    </div>
+  </div>
+
+  <ng-template #noBars>
+    <div class="mt-4 rounded-2xl border border-dashed border-slate-300 px-3 py-6 text-center text-sm text-slate-500">
+      {{ emptyMessage }}
+    </div>
+  </ng-template>
+</article>

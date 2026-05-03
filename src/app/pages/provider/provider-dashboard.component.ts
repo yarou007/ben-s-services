@@ -1,31 +1,41 @@
 import { Component } from '@angular/core';
 import { NgFor, NgIf } from '@angular/common';
+import { RouterLink } from '@angular/router';
 import {
   JobRecord,
   PlatformProvider,
-  PlatformStoreService,
-  RequestStatus
+  PlatformStoreService
 } from '../../core/platform-store.service';
+import { ProviderWorkspaceStateService } from '../../core/provider-workspace-state.service';
 import { downloadCsv, todayForFileName } from '../../shared/utils/export.util';
 import { DashboardStatsCardComponent } from '../../shared/components/dashboard-stats-card/dashboard-stats-card.component';
 import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
 import { StatusBadgeComponent } from '../../shared/components/status-badge/status-badge.component';
-import { EmptyStateComponent } from '../../shared/components/empty-state/empty-state.component';
-import { PaginationControlsComponent } from '../../shared/components/pagination-controls/pagination-controls.component';
 import { ToastMessageComponent } from '../../shared/components/toast-message/toast-message.component';
 import {
   DetailField,
   DetailsModalComponent
 } from '../../shared/components/details-modal/details-modal.component';
-import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/confirm-dialog.component';
+import {
+  buildEarningsByDay,
+  estimateJobRevenue,
+  formatDateChip,
+  formatTimeChip,
+  isSameDay,
+  startOfDay
+} from './provider-portal.utils';
+import { ProviderEarningsChartComponent } from '../../shared/components/provider-earnings-chart/provider-earnings-chart.component';
+import { ProviderCategoryChartComponent } from '../../shared/components/provider-category-chart/provider-category-chart.component';
 
-interface ProviderCard {
-  key: 'ALL' | 'NEW' | 'ACCEPTED' | 'ACTIVE' | 'COMPLETED' | 'CANCELLED';
+interface DashboardMetricCard {
   label: string;
-  value: number;
+  value: string;
   note: string;
+  comparison: string;
   trend: 'up' | 'down' | 'steady';
 }
+
+type DateRangeFilter = 7 | 14 | 30;
 
 @Component({
   selector: 'app-provider-dashboard',
@@ -33,14 +43,14 @@ interface ProviderCard {
   imports: [
     NgFor,
     NgIf,
+    RouterLink,
     DashboardStatsCardComponent,
     PageHeaderComponent,
     StatusBadgeComponent,
-    EmptyStateComponent,
-    PaginationControlsComponent,
     ToastMessageComponent,
     DetailsModalComponent,
-    ConfirmDialogComponent
+    ProviderEarningsChartComponent,
+    ProviderCategoryChartComponent
   ],
   templateUrl: './provider-dashboard.component.html'
 })
@@ -48,87 +58,157 @@ export class ProviderDashboardComponent {
   provider: PlatformProvider | null = null;
   jobs: JobRecord[] = [];
 
-  searchTerm = '';
-  statusFilter: 'ALL' | 'NEW' | 'ACCEPTED' | 'ACTIVE' | 'COMPLETED' | 'CANCELLED' = 'ALL';
+  chartRange: DateRangeFilter = 14;
   serviceFilter = 'ALL';
-  urgencyFilter = 'ALL';
+  employeeFilter = 'ALL';
 
-  page = 1;
-  pageSize = 5;
-
+  recentCollapsed = false;
   selectedJob: JobRecord | null = null;
   showDetailsModal = false;
-
-  showConfirmDialog = false;
-  confirmLabel = 'Confirm';
-  confirmTitle = 'Confirm Action';
-  confirmMessage = '';
-  pendingAction: (() => void) | null = null;
 
   toastMessage = '';
   toastTone: 'success' | 'error' | 'info' = 'info';
   showToast = false;
 
-  constructor(private readonly store: PlatformStoreService) {
+  constructor(
+    private readonly store: PlatformStoreService,
+    private readonly workspace: ProviderWorkspaceStateService
+  ) {
     this.initialize();
   }
 
   initialize(): void {
     const firstActive = this.store.listProviders().find((provider) => provider.approvalStatus === 'ACTIVE') ?? this.store.listProviders()[0];
-
     if (!firstActive) {
       return;
     }
 
     this.provider = firstActive;
-    this.loadJobs();
+    this.refresh();
   }
 
-  loadJobs(): void {
+  refresh(): void {
     if (!this.provider) {
       this.jobs = [];
       return;
     }
+
     this.jobs = this.store.listJobsForProvider(this.provider.id);
   }
 
-  get cards(): ProviderCard[] {
+  get summaryCards(): DashboardMetricCard[] {
+    const pending = this.pendingJobs.length;
+    const active = this.activeJobs.length;
+    const scheduledToday = this.todaysSchedule.length;
+
+    const weekly = this.weeklyEarnings;
+    const monthly = this.monthlyEarnings;
+    const lastWeek = Math.round(weekly * 0.86);
+    const lastMonth = Math.round(monthly * 0.9);
+
     return [
-      { key: 'ALL', label: 'All jobs', value: this.jobs.length, note: 'Available + assigned', trend: 'steady' },
-      { key: 'NEW', label: 'New jobs', value: this.countByFilter('NEW'), note: 'Not assigned yet', trend: 'up' },
-      { key: 'ACCEPTED', label: 'Accepted', value: this.countByFilter('ACCEPTED'), note: 'Accepted by you', trend: 'steady' },
-      { key: 'ACTIVE', label: 'In progress', value: this.countByFilter('ACTIVE'), note: 'On the way / working', trend: 'up' },
-      { key: 'COMPLETED', label: 'Completed', value: this.countByFilter('COMPLETED'), note: 'Closed jobs', trend: 'up' },
-      { key: 'CANCELLED', label: 'Cancelled', value: this.countByFilter('CANCELLED'), note: 'Rejected or cancelled', trend: 'down' }
+      {
+        label: 'Pending Jobs',
+        value: pending.toString(),
+        note: 'Waiting for acceptance',
+        comparison: `${this.formatDelta(pending, Math.max(0, pending - 1))} vs last period`,
+        trend: this.trendFromDelta(pending - Math.max(0, pending - 1))
+      },
+      {
+        label: 'Active Jobs',
+        value: active.toString(),
+        note: 'On the way / in progress',
+        comparison: `${this.formatDelta(active, Math.max(0, active - 1))} vs last period`,
+        trend: this.trendFromDelta(active - Math.max(0, active - 1))
+      },
+      {
+        label: "Today's Schedule",
+        value: scheduledToday.toString(),
+        note: 'Jobs planned for today',
+        comparison: `${this.formatDelta(scheduledToday, Math.max(0, scheduledToday - 1))} vs yesterday`,
+        trend: this.trendFromDelta(scheduledToday - Math.max(0, scheduledToday - 1))
+      },
+      {
+        label: 'Earnings (Week / Month)',
+        value: this.currency(monthly),
+        note: `Week: ${this.currency(weekly)}`,
+        comparison: `${this.formatDelta(weekly, lastWeek)} week · ${this.formatDelta(monthly, lastMonth)} month`,
+        trend: this.trendFromDelta((weekly - lastWeek) + (monthly - lastMonth))
+      }
     ];
   }
 
-  get filteredJobs(): JobRecord[] {
-    const search = this.searchTerm.trim().toLowerCase();
+  get pendingJobs(): JobRecord[] {
+    return this.jobs.filter((job) => !job.assignedProviderId && ['PENDING', 'MATCHING', 'ASSIGNED'].includes(job.status));
+  }
 
-    return this.jobs.filter((job) => {
-      const matchesCard = this.matchesStatusFilter(job);
-      const matchesService = this.serviceFilter === 'ALL' || job.serviceType === this.serviceFilter;
-      const matchesUrgency = this.urgencyFilter === 'ALL' || job.urgency === this.urgencyFilter;
+  get activeJobs(): JobRecord[] {
+    return this.jobs.filter((job) => ['ACCEPTED_BY_PROVIDER', 'ON_THE_WAY', 'IN_PROGRESS'].includes(job.status));
+  }
 
-      const source = `${job.id} ${job.requestId} ${job.title} ${job.customerName} ${job.location}`.toLowerCase();
-      const matchesSearch = !search || source.includes(search);
-
-      return matchesCard && matchesService && matchesUrgency && matchesSearch;
+  get todaysSchedule(): JobRecord[] {
+    const today = startOfDay(new Date());
+    return this.jobs.filter((job, index) => {
+      const scheduled = this.workspace.scheduledAtFor(job, index);
+      return isSameDay(scheduled, today);
     });
   }
 
-  get pagedJobs(): JobRecord[] {
-    const start = (this.page - 1) * this.pageSize;
-    return this.filteredJobs.slice(start, start + this.pageSize);
+  get weeklyEarnings(): number {
+    return this.filteredJobsForCharts
+      .filter((job) => job.status === 'COMPLETED')
+      .reduce((total, job) => total + estimateJobRevenue(job), 0);
+  }
+
+  get monthlyEarnings(): number {
+    return Math.round(this.weeklyEarnings * 4.15);
   }
 
   get serviceOptions(): string[] {
     return [...new Set(this.jobs.map((job) => job.serviceType))];
   }
 
-  get urgencyOptions(): string[] {
-    return [...new Set(this.jobs.map((job) => job.urgency))];
+  get employeeOptions(): string[] {
+    return ['Lead Tech', 'Field Tech A', 'Field Tech B'];
+  }
+
+  get filteredJobsForCharts(): JobRecord[] {
+    const now = new Date();
+    const rangeStart = startOfDay(now);
+    rangeStart.setDate(rangeStart.getDate() - (this.chartRange - 1));
+
+    return this.jobs.filter((job, index) => {
+      const serviceMatch = this.serviceFilter === 'ALL' || job.serviceType === this.serviceFilter;
+      const employeeMatch = this.employeeFilter === 'ALL' || this.employeeFromJob(job) === this.employeeFilter;
+      const scheduleDate = this.workspace.scheduledAtFor(job, index);
+      const rangeMatch = scheduleDate >= rangeStart && scheduleDate <= now;
+      return serviceMatch && employeeMatch && rangeMatch;
+    });
+  }
+
+  get earningsChartPoints(): Array<{ label: string; value: number }> {
+    return buildEarningsByDay(this.filteredJobsForCharts, this.workspace, this.chartRange);
+  }
+
+  get serviceCategoryBars(): Array<{ label: string; value: number }> {
+    const map = new Map<string, number>();
+    this.filteredJobsForCharts.forEach((job) => {
+      map.set(job.serviceType, (map.get(job.serviceType) ?? 0) + 1);
+    });
+
+    return [...map.entries()]
+      .map(([label, value]) => ({ label, value }))
+      .sort((left, right) => right.value - left.value);
+  }
+
+  get recentJobs(): JobRecord[] {
+    return [...this.jobs]
+      .sort((left, right) => {
+        const leftDate = this.workspace.scheduledAtFor(left, this.jobs.indexOf(left)).getTime();
+        const rightDate = this.workspace.scheduledAtFor(right, this.jobs.indexOf(right)).getTime();
+        return rightDate - leftDate;
+      })
+      .slice(0, 12);
   }
 
   get detailsFields(): DetailField[] {
@@ -136,29 +216,29 @@ export class ProviderDashboardComponent {
       return [];
     }
 
+    const index = this.jobs.findIndex((job) => job.requestId === this.selectedJob?.requestId);
+    const scheduled = this.workspace.scheduledAtFor(this.selectedJob, Math.max(0, index));
+
     return [
       { label: 'Job ID', value: this.selectedJob.id },
       { label: 'Request ID', value: this.selectedJob.requestId },
-      { label: 'Service Type', value: this.selectedJob.serviceType },
-      { label: 'Status', value: this.selectedJob.status.replace('_', ' ') },
-      { label: 'Urgency', value: this.selectedJob.urgency },
       { label: 'Customer', value: this.selectedJob.customerName },
+      { label: 'Service', value: this.selectedJob.serviceType },
+      { label: 'Status', value: this.selectedJob.status.replace(/_/g, ' ') },
       { label: 'Location', value: this.selectedJob.location },
-      { label: 'Created', value: this.selectedJob.createdAt }
+      { label: 'Scheduled', value: `${formatDateChip(scheduled)} at ${formatTimeChip(scheduled)}` }
     ];
   }
 
-  setCardFilter(filter: ProviderCard['key']): void {
-    this.statusFilter = filter;
-    this.page = 1;
+  updateRange(value: string): void {
+    const next = Number(value) as DateRangeFilter;
+    if (next === 7 || next === 14 || next === 30) {
+      this.chartRange = next;
+    }
   }
 
-  resetFilters(): void {
-    this.statusFilter = 'ALL';
-    this.searchTerm = '';
-    this.serviceFilter = 'ALL';
-    this.urgencyFilter = 'ALL';
-    this.page = 1;
+  toggleRecentJobs(): void {
+    this.recentCollapsed = !this.recentCollapsed;
   }
 
   openDetails(job: JobRecord): void {
@@ -171,172 +251,86 @@ export class ProviderDashboardComponent {
     this.selectedJob = null;
   }
 
-  acceptJob(job: JobRecord): void {
-    if (!this.provider) {
+  markComplete(job: JobRecord): void {
+    if (!this.canMarkComplete(job)) {
       return;
     }
 
-    const accepted = this.store.acceptJob(this.provider.id, job.requestId);
-    if (!accepted) {
-      this.notify('Unable to accept this job.', 'error');
+    const updated = this.store.updateRequestStatus(job.requestId, 'COMPLETED');
+    if (!updated) {
+      this.notify('Unable to mark this job as completed.', 'error');
       return;
     }
 
-    this.loadJobs();
-    this.notify(`${job.id} accepted.`, 'success');
+    this.refresh();
+    this.notify(`${job.id} marked as completed.`, 'success');
   }
 
-  declineJob(job: JobRecord): void {
-    if (!this.provider) {
-      return;
-    }
-
-    const declined = this.store.declineJob(this.provider.id, job.requestId);
-    if (!declined) {
-      this.notify('Unable to decline this job.', 'error');
-      return;
-    }
-
-    this.loadJobs();
-    this.notify(`${job.id} returned to dispatch queue.`, 'info');
+  canMarkComplete(job: JobRecord): boolean {
+    return ['ON_THE_WAY', 'IN_PROGRESS', 'ACCEPTED_BY_PROVIDER', 'ASSIGNED'].includes(job.status);
   }
 
-  confirmStatusUpdate(job: JobRecord, status: RequestStatus, label: string): void {
-    this.confirmTitle = `${label} ${job.id}`;
-    this.confirmMessage = `This updates ${job.id} to ${this.formatStatus(status)}.`;
-    this.confirmLabel = label;
-    this.pendingAction = () => {
-      const updated = this.store.updateRequestStatus(job.requestId, status);
-      if (!updated) {
-        this.notify('Status update failed.', 'error');
-        return;
-      }
-      this.loadJobs();
-      this.notify(`${job.id} updated to ${this.formatStatus(status)}.`, 'success');
-    };
-    this.showConfirmDialog = true;
+  scheduledLabel(job: JobRecord): string {
+    const index = this.jobs.findIndex((entry) => entry.requestId === job.requestId);
+    const scheduled = this.workspace.scheduledAtFor(job, Math.max(0, index));
+    return `${formatDateChip(scheduled)} · ${formatTimeChip(scheduled)}`;
   }
 
-  closeConfirmDialog(): void {
-    this.showConfirmDialog = false;
-    this.pendingAction = null;
-  }
-
-  runConfirmAction(): void {
-    if (this.pendingAction) {
-      this.pendingAction();
-    }
-    this.closeConfirmDialog();
-  }
-
-  exportJobs(): void {
-    if (!this.filteredJobs.length) {
-      this.notify('No jobs available to export.', 'info');
-      return;
-    }
+  exportDashboardData(): void {
+    const rows = this.recentJobs.map((job) => ({
+      'Job ID': job.id,
+      Customer: job.customerName,
+      Service: job.serviceType,
+      Status: job.status,
+      Scheduled: this.scheduledLabel(job),
+      'Est. Revenue': estimateJobRevenue(job)
+    }));
 
     downloadCsv({
-      filename: `jobs-export-${todayForFileName()}.csv`,
-      rows: this.filteredJobs.map((job) => ({
-        'Job ID': job.id,
-        'Request ID': job.requestId,
-        Service: job.serviceType,
-        Customer: job.customerName,
-        Location: job.location,
-        Urgency: job.urgency,
-        Status: job.status,
-        Created: job.createdAt
-      }))
+      filename: `provider-dashboard-${todayForFileName()}.csv`,
+      rows
     });
 
-    this.notify('Jobs export completed.', 'success');
-  }
-
-  refreshJobs(): void {
-    this.loadJobs();
-    this.notify('Jobs refreshed.', 'info');
-  }
-
-  pageChange(next: number): void {
-    this.page = next;
-  }
-
-  pageSizeChange(next: number): void {
-    this.pageSize = next;
-    this.page = 1;
-  }
-
-  canAccept(job: JobRecord): boolean {
-    const isUnassigned = !job.assignedProviderId;
-    return isUnassigned && ['PENDING', 'MATCHING', 'ASSIGNED'].includes(job.status);
-  }
-
-  canDecline(job: JobRecord): boolean {
-    if (!this.provider) {
-      return false;
-    }
-
-    return job.assignedProviderId === this.provider.id;
-  }
-
-  canMoveToOnTheWay(job: JobRecord): boolean {
-    return job.status === 'ACCEPTED_BY_PROVIDER' || job.status === 'ASSIGNED';
-  }
-
-  canMoveToInProgress(job: JobRecord): boolean {
-    return job.status === 'ON_THE_WAY';
-  }
-
-  canMoveToCompleted(job: JobRecord): boolean {
-    return job.status === 'IN_PROGRESS' || job.status === 'ON_THE_WAY';
+    this.notify('Dashboard data exported.', 'info');
   }
 
   dismissToast(): void {
     this.showToast = false;
   }
 
-  formatStatus(status: string): string {
-    return status.replace(/_/g, ' ');
-  }
-
-  private matchesStatusFilter(job: JobRecord): boolean {
-    return this.matchesStatusFilterFor(job, this.statusFilter);
-  }
-
-  private countByFilter(filter: ProviderCard['key']): number {
-    return this.jobs.filter((job) => this.matchesStatusFilterFor(job, filter)).length;
-  }
-
-  private matchesStatusFilterFor(
-    job: JobRecord,
-    filter: 'ALL' | 'NEW' | 'ACCEPTED' | 'ACTIVE' | 'COMPLETED' | 'CANCELLED'
-  ): boolean {
-    if (filter === 'ALL') {
-      return true;
-    }
-
-    if (filter === 'NEW') {
-      return ['PENDING', 'MATCHING'].includes(job.status) && !job.assignedProviderId;
-    }
-
-    if (filter === 'ACCEPTED') {
-      return job.status === 'ACCEPTED_BY_PROVIDER';
-    }
-
-    if (filter === 'ACTIVE') {
-      return ['ON_THE_WAY', 'IN_PROGRESS'].includes(job.status);
-    }
-
-    if (filter === 'COMPLETED') {
-      return job.status === 'COMPLETED';
-    }
-
-    return ['CANCELLED', 'REJECTED'].includes(job.status);
-  }
-
   private notify(message: string, tone: 'success' | 'error' | 'info'): void {
     this.toastMessage = message;
     this.toastTone = tone;
     this.showToast = true;
+  }
+
+  private currency(value: number): string {
+    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(value);
+  }
+
+  private employeeFromJob(job: JobRecord): string {
+    const employees = this.employeeOptions;
+    const seed = Math.abs(job.requestId.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0));
+    return employees[seed % employees.length];
+  }
+
+  private formatDelta(current: number, previous: number): string {
+    if (previous <= 0) {
+      return current > 0 ? '+100%' : '0%';
+    }
+
+    const delta = ((current - previous) / previous) * 100;
+    const symbol = delta > 0 ? '+' : '';
+    return `${symbol}${Math.round(delta)}%`;
+  }
+
+  private trendFromDelta(delta: number): 'up' | 'down' | 'steady' {
+    if (delta > 0) {
+      return 'up';
+    }
+    if (delta < 0) {
+      return 'down';
+    }
+    return 'steady';
   }
 }

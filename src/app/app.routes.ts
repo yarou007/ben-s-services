@@ -23,6 +23,10 @@ import { ProviderProfileComponent } from './pages/provider/provider-profile.comp
 import { ProviderRegisterComponent } from './pages/provider/provider-register.component';
 import { AdminRequestDetailComponent } from './pages/admin/admin-request-detail.component';
 import { AdminCrmDetailComponent } from './pages/admin/admin-crm-detail.component';
+import { ProviderRequestsComponent } from './pages/provider/provider-requests.component';
+import { ProviderCalendarComponent } from './pages/provider/provider-calendar.component';
+import { ProviderEarningsComponent } from './pages/provider/provider-earnings.component';
+import { ProviderReviewsComponent } from './pages/provider/provider-reviews.component';
 
 export const routes: Routes = [
 	{ path: '', redirectTo: 'role', pathMatch: 'full' },
@@ -62,6 +66,10 @@ export const routes: Routes = [
 		component: ProviderLayoutComponent,
 		children: [
 			{ path: 'dashboard', component: ProviderDashboardComponent },
+			{ path: 'requests', component: ProviderRequestsComponent },
+			{ path: 'calendar', component: ProviderCalendarComponent },
+			{ path: 'earnings', component: ProviderEarningsComponent },
+			{ path: 'reviews', component: ProviderReviewsComponent },
 			{ path: 'profile', component: ProviderProfileComponent },
 			{ path: 'register', component: ProviderRegisterComponent },
 			{ path: '', redirectTo: 'dashboard', pathMatch: 'full' }
