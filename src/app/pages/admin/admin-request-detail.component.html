@@ -21,11 +21,11 @@
 
   <section class="card-surface rounded-3xl p-5 sm:p-6">
     <p class="text-sm font-semibold text-slate-900">Dispatch workflow</p>
-    <div class="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5" *ngIf="steps.length; else noSteps">
-      <div *ngFor="let step of steps" class="flex flex-col items-center gap-2 rounded-2xl border border-slate-200 bg-white p-3 text-center">
+    <div class="app-timeline-chips mt-4" *ngIf="steps.length; else noSteps">
+      <div *ngFor="let step of steps" class="app-timeline-chip flex min-h-[92px] flex-col items-center justify-center gap-2 text-center">
         <div class="flex h-10 w-10 items-center justify-center rounded-full border" [ngClass]="stepClass(step.status)">✓</div>
-        <p class="text-xs font-semibold text-slate-700">{{ step.label }}</p>
-        <p class="text-[10px] text-slate-500">{{ step.timestamp }}</p>
+        <p class="text-[11px] font-semibold text-slate-700">{{ step.label }}</p>
+        <p class="text-[10px] normal-case tracking-normal text-slate-500">{{ step.timestamp }}</p>
       </div>
     </div>
     <ng-template #noSteps>

@@ -1,34 +1,99 @@
-<div class="min-h-screen">
-  <header class="sticky top-0 z-20 border-b border-slate-200/70 bg-white/90 backdrop-blur-lg">
-    <div class="app-shell-main py-4">
-      <div class="flex flex-wrap items-center justify-between gap-3">
-        <div class="flex items-center gap-3">
-          <div class="flex h-9 w-9 items-center justify-center rounded-full bg-brand-600 text-sm font-semibold text-white">BS</div>
-          <div>
-            <p class="text-sm font-semibold text-brand-700">Ben's Services</p>
-            <p class="text-xs text-slate-400">Customer Portal</p>
+<div class="flex min-h-screen">
+  <aside
+    class="sticky top-0 hidden h-screen w-72 shrink-0 flex-col gap-4 overflow-y-auto border-r border-slate-200/80 bg-white/92 px-4 py-4 backdrop-blur-lg lg:flex"
+    aria-label="Customer sidebar"
+  >
+    <div class="flex items-center gap-3 rounded-2xl border border-slate-200/80 bg-white p-3">
+      <div class="flex h-10 w-10 items-center justify-center rounded-2xl bg-brand-100 font-semibold text-brand-700">BS</div>
+      <div>
+        <p class="text-xs uppercase tracking-[0.22em] text-slate-500">Customer Portal</p>
+        <p class="text-lg font-semibold text-slate-900">Ben's Services</p>
+      </div>
+    </div>
+
+    <nav class="grid gap-1" aria-label="Customer navigation">
+      <a
+        *ngFor="let item of navItems"
+        [routerLink]="item.path"
+        [fragment]="item.fragment || undefined"
+        routerLinkActive="border-brand-200 bg-brand-50 text-brand-900 shadow-sm"
+        class="group flex items-center gap-3 rounded-xl border border-transparent px-3 py-2.5 text-sm font-semibold text-slate-700 transition hover:border-brand-100 hover:bg-brand-50/70"
+      >
+        <span class="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-slate-200 bg-slate-50 text-[10px] font-bold tracking-[0.04em] text-slate-700">
+          {{ item.icon }}
+        </span>
+        <span>{{ item.label }}</span>
+      </a>
+    </nav>
+
+    <section class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm">
+      <p class="font-semibold text-slate-900">Need urgent help?</p>
+      <p class="mt-1 text-slate-600">Use “Submit Request” and pick <strong>Emergency</strong> for the fastest dispatch.</p>
+    </section>
+
+    <a routerLink="/role" class="app-btn app-btn-secondary app-btn-sm w-full">Switch role</a>
+  </aside>
+
+  <div class="flex min-w-0 flex-1 flex-col">
+    <header class="sticky top-0 z-20 border-b border-slate-200/75 bg-white/92 backdrop-blur-lg" aria-label="Customer top bar">
+      <div class="app-shell-main flex items-center justify-between gap-3 py-2.5">
+        <div class="flex min-w-0 items-center gap-2">
+          <button
+            type="button"
+            class="app-btn app-btn-secondary app-btn-icon lg:hidden"
+            aria-label="Open customer navigation menu"
+            [attr.aria-expanded]="mobileNavOpen"
+            (click)="toggleMobileNav()"
+          >
+            ☰
+          </button>
+          <div class="min-w-0">
+            <p class="truncate text-[10px] uppercase tracking-[0.2em] text-slate-500">Ben's Services</p>
+            <p class="truncate text-base font-semibold text-slate-900">Customer Workspace</p>
           </div>
         </div>
 
-        <a class="app-btn app-btn-secondary app-btn-sm" routerLink="/role">
-          Exit
-        </a>
+        <a routerLink="/customer/service-request" class="app-btn app-btn-primary app-btn-sm">Submit Request</a>
       </div>
+    </header>
 
-      <nav class="app-scroll-x mt-3 flex items-center gap-2" aria-label="Customer navigation">
-        <a
-          *ngFor="let item of navItems"
-          [routerLink]="item.path"
-          routerLinkActive="border-brand-200 bg-brand-600 text-white"
-          class="inline-flex min-h-[44px] whitespace-nowrap rounded-full border border-transparent bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-brand-200 hover:bg-brand-50 hover:text-brand-800"
-        >
-          {{ item.label }}
-        </a>
-      </nav>
+    <main class="app-shell-main fade-in flex-1 py-4 pb-8 sm:py-5 lg:py-6">
+      <router-outlet></router-outlet>
+    </main>
+  </div>
+
+  <div *ngIf="mobileNavOpen" class="fixed inset-0 z-40 bg-slate-900/45 lg:hidden" (click)="closeMobileNav()"></div>
+
+  <aside
+    *ngIf="mobileNavOpen"
+    class="fixed inset-y-0 left-0 z-50 w-[min(86vw,320px)] border-r border-slate-200 bg-white p-4 shadow-soft lg:hidden"
+    aria-label="Customer mobile navigation"
+  >
+    <div class="flex items-center justify-between gap-2">
+      <div>
+        <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Navigation</p>
+        <p class="text-lg font-semibold text-slate-900">Customer Menu</p>
+      </div>
+      <button type="button" class="app-btn app-btn-secondary app-btn-icon" aria-label="Close customer navigation menu" (click)="closeMobileNav()">✕</button>
     </div>
-  </header>
 
-  <main class="app-shell-main fade-in py-6 sm:py-8 lg:py-10">
-    <router-outlet></router-outlet>
-  </main>
+    <nav class="mt-4 grid gap-1" aria-label="Customer mobile links">
+      <a
+        *ngFor="let item of navItems"
+        [routerLink]="item.path"
+        [fragment]="item.fragment || undefined"
+        routerLinkActive="border-brand-200 bg-brand-50 text-brand-900"
+        class="flex items-center gap-3 rounded-xl border border-transparent px-4 py-3 text-sm font-semibold text-slate-700"
+        (click)="closeMobileNav()"
+      >
+        <span class="inline-flex h-7 w-7 items-center justify-center rounded-lg border border-slate-200 bg-slate-50 text-[10px] font-bold tracking-[0.04em] text-slate-700">{{ item.icon }}</span>
+        {{ item.label }}
+      </a>
+    </nav>
+
+    <div class="mt-4 grid gap-2">
+      <a routerLink="/customer/service-request" class="app-btn app-btn-primary w-full" (click)="closeMobileNav()">Submit Request</a>
+      <a routerLink="/role" class="app-btn app-btn-secondary w-full" (click)="closeMobileNav()">Switch role</a>
+    </div>
+  </aside>
 </div>

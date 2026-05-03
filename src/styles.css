@@ -506,12 +506,69 @@ button:active {
 .app-dialog {
   width: min(100%, 680px);
   max-height: min(92dvh, 760px);
-  overflow: auto;
+  overflow-y: auto;
+  overflow-x: hidden;
   border-radius: 1.4rem;
   border: 1px solid rgba(148, 163, 184, 0.28);
   background: #fff;
   padding: 1.1rem;
   box-shadow: 0 18px 44px rgba(15, 23, 42, 0.26);
+}
+
+.app-dialog::-webkit-scrollbar {
+  width: 8px;
+}
+
+.app-dialog::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.55);
+  border-radius: 999px;
+}
+
+.app-timeline-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.app-timeline-chip {
+  flex: 1 1 140px;
+  min-height: 46px;
+  border-radius: 0.95rem;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  padding: 0.55rem 0.7rem;
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  line-height: 1.25;
+  color: #475569;
+  background: #f8fafc;
+  white-space: normal;
+  word-break: break-word;
+}
+
+.app-timeline-chip-active {
+  border-color: rgba(16, 185, 129, 0.55);
+  color: #065f46;
+  background: #ecfdf5;
+}
+
+.app-detail-value-highlight {
+  color: #1e3a8a;
+}
+
+.app-detail-value-status {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid rgba(59, 130, 246, 0.35);
+  background: rgba(239, 246, 255, 0.95);
+  color: #1e40af;
+  border-radius: 999px;
+  padding: 0.2rem 0.65rem;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 700;
 }
 
 .app-divider {

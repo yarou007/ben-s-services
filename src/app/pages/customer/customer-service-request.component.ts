@@ -7,6 +7,7 @@ import {
   RequestUrgency
 } from '../../core/platform-store.service';
 import { StatusBadgeComponent } from '../../shared/components/status-badge/status-badge.component';
+import { FeedbackWidgetComponent } from '../../shared/components/feedback-widget/feedback-widget.component';
 
 interface RequestFormModel {
   serviceType: string;
@@ -20,7 +21,7 @@ interface RequestFormModel {
 @Component({
   selector: 'app-customer-service-request',
   standalone: true,
-  imports: [NgIf, FormsModule, RouterLink, StatusBadgeComponent],
+  imports: [NgIf, FormsModule, RouterLink, StatusBadgeComponent, FeedbackWidgetComponent],
   templateUrl: './customer-service-request.component.html'
 })
 export class CustomerServiceRequestComponent {
@@ -42,6 +43,7 @@ export class CustomerServiceRequestComponent {
   submitting = false;
   submittedRequestId = '';
   errorMessage = '';
+  selectedFileName = '';
 
   constructor(private readonly store: PlatformStoreService) {
     this.customer = this.store.getCustomerContext();
@@ -57,20 +59,22 @@ export class CustomerServiceRequestComponent {
 
     this.submitting = true;
 
-    const created = this.store.createCustomerRequest({
-      serviceType: this.model.serviceType,
-      description: this.model.description,
-      urgency: this.model.urgency,
-      location: this.model.location,
-      city: this.model.city,
-      zip: this.model.zip,
-      customerName: this.customer.name,
-      customerEmail: this.customer.email,
-      customerPhone: this.customer.phone
-    });
+    setTimeout(() => {
+      const created = this.store.createCustomerRequest({
+        serviceType: this.model.serviceType,
+        description: this.model.description,
+        urgency: this.model.urgency,
+        location: this.model.location,
+        city: this.model.city,
+        zip: this.model.zip,
+        customerName: this.customer.name,
+        customerEmail: this.customer.email,
+        customerPhone: this.customer.phone
+      });
 
-    this.submitting = false;
-    this.submittedRequestId = created.id;
+      this.submitting = false;
+      this.submittedRequestId = created.id;
+    }, 450);
   }
 
   resetForm(): void {
@@ -83,6 +87,12 @@ export class CustomerServiceRequestComponent {
       city: '',
       zip: ''
     };
+    this.selectedFileName = '';
+  }
+
+  onFileChange(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    this.selectedFileName = input.files?.[0]?.name ?? '';
   }
 
   get urgencyStatus(): string {

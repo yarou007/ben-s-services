@@ -1,0 +1,43 @@
+<section class="card-surface rounded-3xl p-5" [ngClass]="compact ? 'p-4' : ''" aria-label="Feedback widget">
+  <h3 class="text-base font-semibold text-slate-900">{{ title }}</h3>
+  <p class="mt-1 text-sm text-slate-600">{{ subtitle }}</p>
+
+  <div class="mt-3 flex flex-wrap items-center gap-1" *ngIf="!submitted; else submittedState" role="radiogroup" aria-label="Star rating">
+    <button
+      *ngFor="let star of stars"
+      type="button"
+      class="app-btn app-btn-icon app-btn-sm rounded-full border"
+      [ngClass]="star <= rating ? 'border-amber-300 bg-amber-50 text-amber-600' : 'border-slate-200 bg-white text-slate-400'"
+      [attr.aria-label]="'Rate ' + star + ' stars'"
+      [attr.aria-pressed]="star <= rating"
+      (click)="setRating(star)"
+    >
+      ★
+    </button>
+  </div>
+
+  <ng-template #submittedState>
+    <p class="mt-3 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-800">
+      Thanks for the feedback. Your rating was {{ rating }}/5.
+    </p>
+  </ng-template>
+
+  <div class="mt-3 app-field" *ngIf="!submitted">
+    <label class="app-label" for="feedbackMessage">Optional comment</label>
+    <textarea
+      id="feedbackMessage"
+      class="app-textarea"
+      rows="3"
+      [(ngModel)]="message"
+      placeholder="Share one thing that could be improved"
+    ></textarea>
+  </div>
+
+  <div class="mt-3 flex flex-wrap gap-2" *ngIf="!submitted">
+    <button type="button" class="app-btn app-btn-primary app-btn-sm" [disabled]="!rating" (click)="submit()">Send feedback</button>
+  </div>
+
+  <div class="mt-3" *ngIf="submitted">
+    <button type="button" class="app-btn app-btn-secondary app-btn-sm" (click)="reset()">Submit another</button>
+  </div>
+</section>

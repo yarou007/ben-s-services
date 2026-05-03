@@ -88,8 +88,6 @@ export class AdminCrmComponent {
     }
 
     return [
-      { label: 'Customer', value: this.selectedRecord.name },
-      { label: 'Email', value: this.selectedRecord.email },
       { label: 'Phone', value: this.selectedRecord.phone },
       { label: 'Requests Count', value: this.selectedRecord.requestsCount.toString() },
       { label: 'Last Status', value: this.formatStatus(this.selectedRecord.lastStatus) },

@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
 import { NgFor, NgIf } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import {
   PlatformRequest,
@@ -8,17 +9,27 @@ import {
 } from '../../core/platform-store.service';
 import { StatusBadgeComponent } from '../../shared/components/status-badge/status-badge.component';
 import { EmptyStateComponent } from '../../shared/components/empty-state/empty-state.component';
+import { PaginationControlsComponent } from '../../shared/components/pagination-controls/pagination-controls.component';
 import { downloadCsv, todayForFileName } from '../../shared/utils/export.util';
 
 @Component({
   selector: 'app-customer-track-request',
   standalone: true,
-  imports: [NgFor, NgIf, RouterLink, StatusBadgeComponent, EmptyStateComponent],
+  imports: [NgFor, NgIf, FormsModule, RouterLink, StatusBadgeComponent, EmptyStateComponent, PaginationControlsComponent],
   templateUrl: './customer-track-request.component.html'
 })
 export class CustomerTrackRequestComponent {
   requests: PlatformRequest[] = [];
-  selectedRequestId = '';
+
+  searchTerm = '';
+  statusFilter: RequestStatus | 'ALL' = 'ALL';
+  serviceFilter = 'ALL';
+
+  page = 1;
+  pageSize = 6;
+
+  selectedRequest: PlatformRequest | null = null;
+  showDetailsModal = false;
 
   readonly flow: RequestStatus[] = [
     'PENDING',
@@ -37,30 +48,48 @@ export class CustomerTrackRequestComponent {
   load(): void {
     const customer = this.store.getCustomerContext();
     this.requests = this.store.listCustomerRequests(customer.name);
-
-    if (!this.selectedRequestId && this.requests.length) {
-      this.selectedRequestId = this.requests[0].id;
-    }
   }
 
-  get selectedRequest(): PlatformRequest | null {
-    return this.requests.find((request) => request.id === this.selectedRequestId) ?? null;
+  get serviceOptions(): string[] {
+    return [...new Set(this.requests.map((request) => request.serviceType))].sort((left, right) => left.localeCompare(right));
   }
 
-  get selectedIndex(): number {
-    return this.requests.findIndex((request) => request.id === this.selectedRequestId);
+  get statusOptions(): RequestStatus[] {
+    return [...new Set(this.requests.map((request) => request.status))];
   }
 
-  previousRequest(): void {
-    if (this.selectedIndex > 0) {
-      this.selectedRequestId = this.requests[this.selectedIndex - 1].id;
-    }
+  get filteredRequests(): PlatformRequest[] {
+    const search = this.searchTerm.trim().toLowerCase();
+
+    return this.requests.filter((request) => {
+      const matchesStatus = this.statusFilter === 'ALL' || request.status === this.statusFilter;
+      const matchesService = this.serviceFilter === 'ALL' || request.serviceType === this.serviceFilter;
+      const source = `${request.id} ${request.serviceType} ${request.location} ${request.city} ${request.status}`.toLowerCase();
+      const matchesSearch = !search || source.includes(search);
+      return matchesStatus && matchesService && matchesSearch;
+    });
   }
 
-  nextRequest(): void {
-    if (this.selectedIndex >= 0 && this.selectedIndex < this.requests.length - 1) {
-      this.selectedRequestId = this.requests[this.selectedIndex + 1].id;
-    }
+  get pagedRequests(): PlatformRequest[] {
+    const start = (this.page - 1) * this.pageSize;
+    return this.filteredRequests.slice(start, start + this.pageSize);
+  }
+
+  resetFilters(): void {
+    this.searchTerm = '';
+    this.statusFilter = 'ALL';
+    this.serviceFilter = 'ALL';
+    this.page = 1;
+  }
+
+  openDetails(request: PlatformRequest): void {
+    this.selectedRequest = request;
+    this.showDetailsModal = true;
+  }
+
+  closeDetails(): void {
+    this.showDetailsModal = false;
+    this.selectedRequest = null;
   }
 
   reached(step: RequestStatus): boolean {
@@ -71,7 +100,6 @@ export class CustomerTrackRequestComponent {
 
     const current = this.flow.indexOf(request.status);
     const target = this.flow.indexOf(step);
-
     if (current === -1 || target === -1) {
       return false;
     }
@@ -79,12 +107,7 @@ export class CustomerTrackRequestComponent {
     return current >= target;
   }
 
-  exportCurrent(): void {
-    const request = this.selectedRequest;
-    if (!request) {
-      return;
-    }
-
+  exportRequest(request: PlatformRequest): void {
     downloadCsv({
       filename: `${request.id.toLowerCase()}-summary-${todayForFileName()}.csv`,
       rows: [
@@ -100,6 +123,15 @@ export class CustomerTrackRequestComponent {
         }
       ]
     });
+  }
+
+  pageChange(next: number): void {
+    this.page = next;
+  }
+
+  pageSizeChange(next: number): void {
+    this.pageSize = next;
+    this.page = 1;
   }
 
   formatStatus(status: string): string {

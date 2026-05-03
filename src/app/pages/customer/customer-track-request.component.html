@@ -1,63 +1,165 @@
-<section class="mx-auto max-w-5xl">
-  <div class="card-surface rounded-3xl p-5 sm:p-8" *ngIf="requests.length; else noRequests">
-    <div class="app-section-head">
-      <div>
-        <p class="app-kicker">Track Request</p>
-        <h2 class="app-title">Request Progress</h2>
-        <p class="app-subtitle">Navigate between your requests and monitor the status timeline.</p>
-      </div>
-      <div class="app-action-row">
-        <button type="button" class="rounded-full border border-slate-200 px-4 py-2 text-xs font-semibold" (click)="previousRequest()" [disabled]="selectedIndex <= 0">Previous</button>
-        <button type="button" class="rounded-full border border-slate-200 px-4 py-2 text-xs font-semibold" (click)="nextRequest()" [disabled]="selectedIndex >= requests.length - 1">Next</button>
-        <button type="button" class="rounded-full border border-slate-200 px-4 py-2 text-xs font-semibold" (click)="exportCurrent()">Download Summary</button>
-      </div>
+<section class="grid gap-5 sm:gap-6">
+  <header class="app-section-head">
+    <div>
+      <p class="app-kicker">My Requests</p>
+      <h2 class="app-title">Request History & Status</h2>
+      <p class="app-subtitle">Search, filter, and open any request to view its current lifecycle progress.</p>
     </div>
+    <div class="app-action-row">
+      <a routerLink="/customer/service-request" class="app-btn app-btn-primary">Submit Request</a>
+      <button type="button" class="app-btn app-btn-secondary" (click)="resetFilters()">Reset Filters</button>
+    </div>
+  </header>
 
-    <div class="mt-4 grid gap-3 md:grid-cols-[1fr_auto] md:items-end">
-      <label class="grid gap-2 text-sm font-semibold text-slate-600">
-        Select request
-        <select class="px-4 py-3 text-sm" [value]="selectedRequestId" (change)="selectedRequestId = $any($event.target).value">
-          <option *ngFor="let request of requests" [value]="request.id">{{ request.id }} · {{ request.serviceType }} · {{ request.city }}</option>
+  <section class="card-surface rounded-3xl p-5 sm:p-6">
+    <div class="grid gap-3 md:grid-cols-3">
+      <label class="app-field md:col-span-2">
+        <span class="app-label">Search requests</span>
+        <input
+          class="app-input"
+          [(ngModel)]="searchTerm"
+          (ngModelChange)="page = 1"
+          placeholder="Request ID, service, location"
+          aria-label="Search requests"
+        />
+      </label>
+
+      <label class="app-field">
+        <span class="app-label">Status</span>
+        <select class="app-select" [(ngModel)]="statusFilter" (ngModelChange)="page = 1" aria-label="Filter by status">
+          <option value="ALL">All</option>
+          <option *ngFor="let status of statusOptions" [value]="status">{{ formatStatus(status) }}</option>
         </select>
       </label>
-      <a routerLink="/customer/service-request" class="rounded-full bg-brand-600 px-4 py-3 text-center text-sm font-semibold text-white">Create New Request</a>
+
+      <label class="app-field md:col-span-3">
+        <span class="app-label">Service</span>
+        <select class="app-select" [(ngModel)]="serviceFilter" (ngModelChange)="page = 1" aria-label="Filter by service type">
+          <option value="ALL">All</option>
+          <option *ngFor="let service of serviceOptions" [value]="service">{{ service }}</option>
+        </select>
+      </label>
+    </div>
+  </section>
+
+  <ng-container *ngIf="pagedRequests.length; else noRequests">
+    <div class="app-mobile-list md:hidden">
+      <article *ngFor="let request of pagedRequests" class="app-mobile-row">
+        <div class="flex items-start justify-between gap-2">
+          <div>
+            <p class="text-sm font-semibold text-slate-900">{{ request.id }}</p>
+            <p class="text-xs text-slate-600">{{ request.serviceType }}</p>
+          </div>
+          <app-status-badge [status]="request.status"></app-status-badge>
+        </div>
+
+        <div class="app-mobile-meta">
+          <p><strong>Submitted:</strong> {{ request.createdAt }}</p>
+          <p><strong>Location:</strong> {{ request.location }}</p>
+          <p><strong>Urgency:</strong> {{ request.urgency }}</p>
+        </div>
+
+        <div class="app-mobile-actions">
+          <button type="button" class="app-btn app-btn-secondary app-btn-xs" (click)="openDetails(request)">View details</button>
+          <button type="button" class="app-btn app-btn-secondary app-btn-xs" (click)="exportRequest(request)">Download</button>
+        </div>
+      </article>
     </div>
 
-    <div class="mt-6 rounded-2xl bg-white p-5 shadow-sm" *ngIf="selectedRequest as request">
-      <div class="flex flex-wrap items-center justify-between gap-2">
+    <div class="app-table-wrap hidden md:block">
+      <table class="app-table min-w-[980px]">
+        <thead>
+          <tr>
+            <th>Request</th>
+            <th>Service</th>
+            <th>Date Submitted</th>
+            <th>Status</th>
+            <th>Urgency</th>
+            <th>Location</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let request of pagedRequests">
+            <td class="font-semibold text-slate-900">{{ request.id }}</td>
+            <td>{{ request.serviceType }}</td>
+            <td>{{ request.createdAt }}</td>
+            <td><app-status-badge [status]="request.status"></app-status-badge></td>
+            <td>{{ request.urgency }}</td>
+            <td class="line-clamp-2">{{ request.location }}</td>
+            <td>
+              <div class="flex flex-wrap gap-1">
+                <button type="button" class="app-btn app-btn-secondary app-btn-xs" (click)="openDetails(request)">View details</button>
+                <button type="button" class="app-btn app-btn-secondary app-btn-xs" (click)="exportRequest(request)">Download</button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <app-pagination-controls
+      [page]="page"
+      [pageSize]="pageSize"
+      [total]="filteredRequests.length"
+      [pageSizeOptions]="[4, 6, 8, 10]"
+      (pageChange)="pageChange($event)"
+      (pageSizeChange)="pageSizeChange($event)"
+    ></app-pagination-controls>
+  </ng-container>
+
+  <ng-template #noRequests>
+    <app-empty-state
+      title="No requests match your filters"
+      description="Try changing your filters or create a new request."
+      ctaLabel="Submit Request"
+      ctaLink="/customer/service-request"
+    ></app-empty-state>
+  </ng-template>
+
+  <div *ngIf="showDetailsModal && selectedRequest" class="app-dialog-overlay" (click)="closeDetails()">
+    <section class="app-dialog max-w-3xl" role="dialog" aria-modal="true" aria-label="Request details" (click)="$event.stopPropagation()">
+      <div class="app-section-head">
         <div>
-          <p class="text-sm font-semibold text-slate-900">{{ request.id }} · {{ request.serviceType }}</p>
-          <p class="text-xs text-slate-500">{{ request.location }} · {{ request.createdAt }}</p>
+          <p class="app-kicker">Request Details</p>
+          <h3 class="text-xl font-semibold text-slate-900">{{ selectedRequest.id }}</h3>
+          <p class="mt-1 text-sm text-slate-600 break-words">{{ selectedRequest.serviceType }} · {{ selectedRequest.location }}</p>
         </div>
-        <app-status-badge [status]="request.status"></app-status-badge>
+        <button type="button" class="app-btn app-btn-secondary app-btn-sm" (click)="closeDetails()">Close</button>
       </div>
 
-      <p class="mt-3 text-xs text-slate-500">{{ request.notes }}</p>
+      <div class="mt-4 grid gap-3 sm:grid-cols-2">
+        <div class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm">
+          <p class="text-xs uppercase tracking-[0.14em] text-slate-500">Status</p>
+          <div class="mt-1"><app-status-badge [status]="selectedRequest.status"></app-status-badge></div>
+        </div>
+        <div class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm">
+          <p class="text-xs uppercase tracking-[0.14em] text-slate-500">Urgency</p>
+          <p class="mt-1 font-semibold text-slate-900">{{ selectedRequest.urgency }}</p>
+        </div>
+      </div>
 
       <div class="mt-5">
         <p class="text-sm font-semibold text-slate-900">Lifecycle timeline</p>
-        <div class="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4 xl:grid-cols-7">
+        <div class="app-timeline-chips mt-3">
           <div
             *ngFor="let step of flow"
-            class="rounded-2xl border px-3 py-2 text-xs"
-            [class.border-emerald-300]="reached(step)"
-            [class.bg-emerald-50]="reached(step)"
-            [class.border-slate-200]="!reached(step)"
-            [class.bg-slate-50]="!reached(step)"
+            class="app-timeline-chip"
+            [class.app-timeline-chip-active]="reached(step)"
           >
             {{ formatStatus(step) }}
           </div>
         </div>
       </div>
-    </div>
-  </div>
 
-  <ng-template #noRequests>
-    <app-empty-state
-      title="No requests to track yet"
-      description="Create a request first, then track it here."
-      ctaLabel="Create Request"
-      ctaLink="/customer/service-request"
-    ></app-empty-state>
-  </ng-template>
+      <div class="mt-5 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">
+        <p class="font-semibold text-slate-900">Notes</p>
+        <p class="mt-1">{{ selectedRequest.notes }}</p>
+      </div>
+
+      <div class="mt-5 flex justify-end">
+        <button type="button" class="app-btn app-btn-secondary" (click)="exportRequest(selectedRequest)">Download summary</button>
+      </div>
+    </section>
+  </div>
 </section>

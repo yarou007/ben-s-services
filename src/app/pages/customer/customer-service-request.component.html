@@ -1,33 +1,34 @@
-<section class="mx-auto max-w-5xl">
-  <div class="grid gap-5 lg:grid-cols-[1.2fr_0.8fr] lg:gap-6">
-    <div class="card-surface rounded-3xl p-5 sm:p-7" *ngIf="!submittedRequestId; else submittedState">
-      <div class="app-section-head">
+<section class="mx-auto max-w-6xl">
+  <div class="grid gap-4 lg:grid-cols-[1.25fr_0.75fr] lg:gap-5">
+    <section class="card-surface rounded-3xl p-5 sm:p-6" *ngIf="!submittedRequestId; else submittedState">
+      <header class="app-section-head">
         <div>
-          <p class="app-kicker">Request a Service</p>
-          <h2 class="app-title">Create a new service request</h2>
-          <p class="app-subtitle">Your request will appear in your dashboard and the admin intake queue.</p>
+          <p class="app-kicker">Submit Request</p>
+          <h2 class="app-title">Create a Service Request</h2>
+          <p class="app-subtitle">Fill in the key details and we’ll route your request to the right team.</p>
         </div>
-      </div>
+      </header>
 
-      <form class="mt-6 grid gap-4" (ngSubmit)="submit()">
-        <div class="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-600">
-          <div class="font-semibold text-slate-900">{{ customer.name }}</div>
-          <div class="text-xs">{{ customer.email }} · {{ customer.phone }}</div>
-        </div>
+      <form class="mt-5 grid gap-4" (ngSubmit)="submit()" aria-label="Customer service request form">
+        <section class="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700" aria-label="Customer details">
+          <p><strong>Name:</strong> {{ customer.name }}</p>
+          <p><strong>Email:</strong> {{ customer.email }}</p>
+          <p><strong>Phone:</strong> {{ customer.phone }}</p>
+        </section>
 
-        <div class="grid gap-4 md:grid-cols-2">
-          <label class="grid gap-2 text-sm font-semibold text-slate-600">
-            Service type
-            <select class="px-4 py-3 text-sm" [(ngModel)]="model.serviceType" name="serviceType">
+        <div class="grid gap-4 sm:grid-cols-2">
+          <label class="app-field">
+            <span class="app-label">Service type</span>
+            <select class="app-select" [(ngModel)]="model.serviceType" name="serviceType" aria-label="Service type">
               <option>Locksmith</option>
               <option>Glass Repair</option>
               <option>Commercial Door Hardware</option>
             </select>
           </label>
 
-          <label class="grid gap-2 text-sm font-semibold text-slate-600">
-            Urgency
-            <select class="px-4 py-3 text-sm" [(ngModel)]="model.urgency" name="urgency">
+          <label class="app-field">
+            <span class="app-label">Urgency</span>
+            <select class="app-select" [(ngModel)]="model.urgency" name="urgency" aria-label="Urgency level">
               <option value="Low">Low</option>
               <option value="Medium">Medium</option>
               <option value="High">High</option>
@@ -36,71 +37,95 @@
           </label>
         </div>
 
-        <div class="rounded-2xl bg-slate-50 p-3 text-sm">
-          <p class="text-xs text-slate-500">Initial status</p>
+        <div class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm">
+          <p class="text-xs text-slate-600">Initial status</p>
           <div class="mt-1"><app-status-badge [status]="urgencyStatus"></app-status-badge></div>
         </div>
 
-        <label class="grid gap-2 text-sm font-semibold text-slate-600">
-          Service description
-          <textarea rows="4" class="px-4 py-3 text-sm" [(ngModel)]="model.description" name="description" placeholder="Describe your issue..."></textarea>
+        <label class="app-field">
+          <span class="app-label">Issue description</span>
+          <textarea
+            rows="4"
+            class="app-textarea"
+            [(ngModel)]="model.description"
+            name="description"
+            placeholder="Describe the issue, access info, and timing constraints"
+            aria-label="Issue description"
+          ></textarea>
+          <p class="app-helper-text">Tip: include photos or door/glass dimensions in the notes if available.</p>
         </label>
 
-        <label class="grid gap-2 text-sm font-semibold text-slate-600">
-          Street address
-          <input class="px-4 py-3 text-sm" [(ngModel)]="model.location" name="location" placeholder="123 Main St" />
+        <label class="app-field">
+          <span class="app-label">Street address</span>
+          <input class="app-input" [(ngModel)]="model.location" name="location" placeholder="123 Main St" aria-label="Street address" />
         </label>
 
-        <div class="grid gap-4 md:grid-cols-2">
-          <label class="grid gap-2 text-sm font-semibold text-slate-600">
-            City
-            <input class="px-4 py-3 text-sm" [(ngModel)]="model.city" name="city" placeholder="Brooklyn" />
+        <div class="grid gap-4 sm:grid-cols-2">
+          <label class="app-field">
+            <span class="app-label">City</span>
+            <input class="app-input" [(ngModel)]="model.city" name="city" placeholder="Brooklyn" aria-label="City" />
           </label>
-          <label class="grid gap-2 text-sm font-semibold text-slate-600">
-            ZIP code
-            <input class="px-4 py-3 text-sm" [(ngModel)]="model.zip" name="zip" placeholder="11211" />
+
+          <label class="app-field">
+            <span class="app-label">ZIP code</span>
+            <input class="app-input" [(ngModel)]="model.zip" name="zip" placeholder="11211" aria-label="ZIP code" />
           </label>
         </div>
 
-        <p *ngIf="errorMessage" class="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">{{ errorMessage }}</p>
+        <label class="app-field">
+          <span class="app-label">Attachment (optional)</span>
+          <input type="file" class="app-input" (change)="onFileChange($event)" aria-label="Optional attachment" />
+          <p class="app-helper-text">Max 5MB suggested for faster processing. Current selection: {{ selectedFileName || 'none' }}.</p>
+        </label>
+
+        <p *ngIf="errorMessage" class="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800" role="alert">{{ errorMessage }}</p>
 
         <div class="mt-1 flex flex-wrap gap-3">
-          <button type="submit" class="flex-1 rounded-2xl bg-brand-600 px-4 py-3 text-center text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60" [disabled]="submitting">
+          <button type="submit" class="app-btn app-btn-primary flex-1" [disabled]="submitting">
             {{ submitting ? 'Submitting...' : 'Submit request' }}
           </button>
-          <a routerLink="/customer/home" class="rounded-2xl border border-slate-200 px-4 py-3 text-center text-sm font-semibold text-slate-600">Back to dashboard</a>
+          <a routerLink="/customer/home" class="app-btn app-btn-secondary">Back to dashboard</a>
         </div>
       </form>
-    </div>
+    </section>
 
     <ng-template #submittedState>
-      <div class="card-surface rounded-3xl p-6">
+      <section class="card-surface rounded-3xl p-6">
         <p class="app-kicker">Request Submitted</p>
         <h3 class="text-xl font-semibold text-slate-900">{{ submittedRequestId }} created successfully</h3>
-        <p class="mt-2 text-sm text-slate-600">You can now track and manage this request from your dashboard.</p>
+        <p class="mt-2 text-sm text-slate-700">Your request is now in the queue. You can track it from My Requests.</p>
 
         <div class="mt-4 flex flex-wrap gap-2">
-          <a routerLink="/customer/home" class="rounded-full bg-brand-600 px-4 py-2 text-sm font-semibold text-white">Go to Dashboard</a>
-          <a routerLink="/customer/track-request" class="rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700">Track Request</a>
-          <button type="button" class="rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700" (click)="resetForm()">Create another</button>
+          <a routerLink="/customer/track-request" class="app-btn app-btn-primary app-btn-sm">Go to My Requests</a>
+          <a routerLink="/customer/home" class="app-btn app-btn-secondary app-btn-sm">Back to Dashboard</a>
+          <button type="button" class="app-btn app-btn-secondary app-btn-sm" (click)="resetForm()">Create another</button>
         </div>
-      </div>
+
+        <div class="mt-4">
+          <app-feedback-widget
+            [title]="'How was this submission flow?'"
+            [subtitle]="'Your feedback helps us simplify this form.'"
+            [compact]="true"
+          ></app-feedback-widget>
+        </div>
+      </section>
     </ng-template>
 
     <div class="grid gap-4">
-      <div class="card-surface rounded-3xl p-6">
-        <p class="app-kicker">What Happens Next</p>
-        <ul class="mt-4 grid gap-3 text-sm text-slate-600">
-          <li class="rounded-2xl bg-white p-3 shadow-sm">Admin receives your request and verifies urgency.</li>
-          <li class="rounded-2xl bg-white p-3 shadow-sm">A provider gets assigned based on service area and availability.</li>
-          <li class="rounded-2xl bg-white p-3 shadow-sm">You receive timeline updates through completion.</li>
+      <section class="card-surface rounded-3xl p-5">
+        <h3 class="text-base font-semibold text-slate-900">What happens next</h3>
+        <ul class="mt-3 grid gap-2 text-sm text-slate-700">
+          <li class="rounded-xl border border-slate-200 bg-white px-3 py-2">We review urgency and service type.</li>
+          <li class="rounded-xl border border-slate-200 bg-white px-3 py-2">A provider is assigned based on area and availability.</li>
+          <li class="rounded-xl border border-slate-200 bg-white px-3 py-2">You receive status updates through completion.</li>
         </ul>
-      </div>
+      </section>
 
-      <div class="card-surface rounded-3xl p-6">
-        <p class="app-kicker">Backend Note</p>
-        <p class="mt-2 text-sm text-slate-600">Requests are saved in the frontend session store for MVP workflows. API persistence will be connected later.</p>
-      </div>
+      <section class="card-surface rounded-3xl p-5">
+        <h3 class="text-base font-semibold text-slate-900">Need help first?</h3>
+        <p class="mt-2 text-sm text-slate-700">Check the knowledge base for common request examples and required details.</p>
+        <a routerLink="/customer/help" class="app-btn app-btn-secondary app-btn-sm mt-3">Open Knowledge Base</a>
+      </section>
     </div>
   </div>
 </section>

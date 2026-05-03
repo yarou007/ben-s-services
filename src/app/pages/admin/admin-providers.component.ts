@@ -81,9 +81,7 @@ export class AdminProvidersComponent {
     }
 
     return [
-      { label: 'Provider Name', value: this.selectedProvider.name },
       { label: 'Services', value: this.selectedProvider.services.join(', ') },
-      { label: 'Service Area', value: this.selectedProvider.serviceArea },
       { label: 'Approval', value: this.selectedProvider.approvalStatus.replace('_', ' ') },
       { label: 'Availability', value: this.selectedProvider.availability },
       { label: 'Rating', value: this.selectedProvider.rating.toFixed(1) },
