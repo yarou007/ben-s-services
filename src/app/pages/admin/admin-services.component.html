@@ -1,16 +1,16 @@
-<section class="grid gap-6">
-  <div class="flex flex-wrap items-center justify-between gap-3">
+<section class="grid gap-5 sm:gap-6">
+  <div class="app-section-head">
     <div>
-      <p class="text-sm uppercase tracking-[0.2em] text-slate-400">Services</p>
-      <h2 class="text-2xl font-semibold text-slate-900">Service catalog management</h2>
+      <p class="app-kicker">Services</p>
+      <h2 class="app-title">Service catalog management</h2>
     </div>
-    <div class="flex flex-wrap gap-2">
+    <div class="app-action-row">
       <button class="rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700">Import CSV</button>
       <button class="rounded-full bg-brand-600 px-4 py-2 text-sm font-semibold text-white">Add service</button>
     </div>
   </div>
 
-  <div class="grid gap-4">
+  <div class="grid gap-4" *ngIf="services.length; else noServices">
     <div *ngFor="let service of services" class="card-surface rounded-2xl p-5">
       <div class="flex flex-wrap items-center justify-between gap-2">
         <div>
@@ -27,4 +27,8 @@
       </div>
     </div>
   </div>
+
+  <ng-template #noServices>
+    <div class="app-state-block">No services exist yet in the catalog.</div>
+  </ng-template>
 </section>

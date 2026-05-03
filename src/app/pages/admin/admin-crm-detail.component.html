@@ -1,20 +1,20 @@
-<section class="grid gap-6">
-  <div class="flex flex-wrap items-center justify-between gap-3">
+<section class="grid gap-5 sm:gap-6">
+  <div class="app-section-head">
     <div>
-      <p class="text-sm uppercase tracking-[0.2em] text-slate-400">CRM Account</p>
-      <h2 class="text-2xl font-semibold text-slate-900">{{ account.name }}</h2>
-      <p class="mt-2 text-sm text-slate-500">{{ account.segment }} · {{ account.email }}</p>
+      <p class="app-kicker">CRM Account</p>
+      <h2 class="app-title">{{ account.name }}</h2>
+      <p class="app-subtitle">{{ account.segment }} · {{ account.email }}</p>
     </div>
-    <div class="flex flex-wrap gap-2">
+    <div class="app-action-row">
       <button class="rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-600">Edit account</button>
       <button class="rounded-full bg-brand-600 px-4 py-2 text-sm font-semibold text-white">Add site</button>
     </div>
   </div>
 
-  <div class="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
+  <div class="grid gap-5 lg:grid-cols-[1.2fr_0.8fr] lg:gap-6">
     <div class="card-surface rounded-3xl p-6">
       <h3 class="text-lg font-semibold text-slate-900">Active contracts</h3>
-      <div class="mt-4 grid gap-3">
+      <div class="mt-4 grid gap-3" *ngIf="contracts.length; else noContracts">
         <div *ngFor="let contract of contracts" class="rounded-2xl bg-white p-4 text-sm shadow-sm">
           <div class="flex flex-wrap items-center justify-between gap-2">
             <p class="font-semibold text-slate-900">{{ contract.name }}</p>
@@ -26,6 +26,9 @@
           </div>
         </div>
       </div>
+      <ng-template #noContracts>
+        <div class="app-state-block mt-4">No contracts found for this account.</div>
+      </ng-template>
     </div>
 
     <div class="card-surface rounded-3xl p-6">
@@ -50,10 +53,10 @@
     </div>
   </div>
 
-  <div class="grid gap-6 lg:grid-cols-[1.4fr_0.6fr]">
+  <div class="grid gap-5 lg:grid-cols-[1.4fr_0.6fr] lg:gap-6">
     <div class="card-surface rounded-3xl p-6">
       <h3 class="text-lg font-semibold text-slate-900">Sites & SLAs</h3>
-      <div class="mt-4 grid gap-3">
+      <div class="mt-4 grid gap-3" *ngIf="sites.length; else noSites">
         <div *ngFor="let site of sites" class="rounded-2xl bg-white p-4 text-sm shadow-sm">
           <p class="font-semibold text-slate-900">{{ site.name }}</p>
           <p class="text-xs text-slate-500">{{ site.address }}</p>
@@ -63,16 +66,22 @@
           </div>
         </div>
       </div>
+      <ng-template #noSites>
+        <div class="app-state-block mt-4">No sites are linked to this account.</div>
+      </ng-template>
     </div>
 
     <div class="card-surface rounded-3xl p-6">
       <h3 class="text-lg font-semibold text-slate-900">Contact log</h3>
-      <div class="mt-4 grid gap-3">
+      <div class="mt-4 grid gap-3" *ngIf="contacts.length; else noContacts">
         <div *ngFor="let item of contacts" class="rounded-2xl bg-white p-3 text-xs text-slate-500 shadow-sm">
           <p class="text-slate-400">{{ item.date }} · {{ item.channel }}</p>
           <p class="mt-1">{{ item.note }}</p>
         </div>
       </div>
+      <ng-template #noContacts>
+        <div class="app-state-block mt-4">No contact history available.</div>
+      </ng-template>
     </div>
   </div>
 </section>

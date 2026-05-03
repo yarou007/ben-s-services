@@ -1,20 +1,30 @@
-<section class="grid gap-6">
-  <div class="grid gap-4 lg:grid-cols-4">
+<section class="grid gap-5 sm:gap-6">
+  <div *ngIf="feedback" class="rounded-2xl border border-brand-200 bg-brand-50 px-4 py-3 text-sm text-brand-800">
+    {{ feedback }}
+  </div>
+
+  <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-4" *ngIf="stats.length; else noStats">
     <div *ngFor="let stat of stats" class="card-surface rounded-2xl p-4">
       <p class="text-xs uppercase tracking-[0.2em] text-slate-400">{{ stat.label }}</p>
       <p class="mt-2 text-2xl font-semibold text-slate-900">{{ stat.value }}</p>
       <p class="mt-2 text-xs font-semibold" [ngClass]="trendClass(stat.trend)">{{ stat.change }}</p>
     </div>
   </div>
+  <ng-template #noStats>
+    <div class="app-state-block">Dashboard KPI data is currently unavailable.</div>
+  </ng-template>
 
-  <div class="grid gap-6 lg:grid-cols-[2fr_1fr]">
+  <div class="grid gap-5 lg:grid-cols-[1.95fr_1fr] lg:gap-6">
     <div class="card-surface rounded-3xl p-6">
-      <div class="flex items-center justify-between">
-        <h2 class="text-lg font-semibold text-slate-900">Priority Requests</h2>
-        <button class="rounded-full border border-slate-200 px-4 py-2 text-xs font-semibold text-slate-600">View all</button>
+      <div class="app-section-head">
+        <h2 class="text-lg font-semibold text-slate-900">Priority requests</h2>
+        <button (click)="toggleRequestsView()" class="rounded-full border border-slate-200 px-4 py-2 text-xs font-semibold text-slate-600">
+          {{ showAllRequests ? 'View top' : 'View all' }}
+        </button>
       </div>
-      <div class="mt-4 grid gap-3">
-        <div *ngFor="let request of requests" class="rounded-2xl bg-white px-4 py-3 shadow-sm">
+
+      <div class="mt-4 grid gap-3" *ngIf="requests.length; else noRequests">
+        <div *ngFor="let request of visibleRequests" class="rounded-2xl bg-white px-4 py-3 shadow-sm">
           <div class="flex flex-wrap items-center justify-between gap-2">
             <div>
               <p class="text-sm font-semibold text-slate-900">{{ request.title }}</p>
@@ -27,16 +37,23 @@
           <div class="mt-2 text-xs text-slate-500">Owner: {{ request.owner }} · SLA: {{ request.sla }}</div>
         </div>
       </div>
+      <ng-template #noRequests>
+        <div class="app-state-block mt-4">No priority requests at this time.</div>
+      </ng-template>
     </div>
 
     <div class="card-surface rounded-3xl p-6">
       <h2 class="text-lg font-semibold text-slate-900">CRM highlights</h2>
-      <ul class="mt-4 grid gap-3 text-sm text-slate-600">
+      <ul class="mt-4 grid gap-3 text-sm text-slate-600" *ngIf="highlights.length; else noHighlights">
         <li *ngFor="let item of highlights" class="rounded-2xl bg-white p-3 shadow-sm">
           <p class="text-sm font-semibold text-slate-900">{{ item.title }}</p>
           <p class="text-xs text-slate-500">{{ item.detail }}</p>
         </li>
       </ul>
+      <ng-template #noHighlights>
+        <div class="app-state-block mt-4">No CRM highlights available.</div>
+      </ng-template>
+
       <div class="mt-6 rounded-2xl bg-slate-900 p-4 text-white">
         <p class="text-sm font-semibold">Next best action</p>
         <p class="mt-1 text-xs text-slate-300">Assign the emergency lockout in Brooklyn.</p>
@@ -45,11 +62,11 @@
   </div>
 
   <div class="card-surface rounded-3xl p-6">
-    <div class="flex items-center justify-between">
+    <div class="app-section-head">
       <h2 class="text-lg font-semibold text-slate-900">Regional performance</h2>
-      <button class="rounded-full border border-slate-200 px-4 py-2 text-xs font-semibold text-slate-600">Export</button>
+      <button (click)="exportRegionalReport()" class="rounded-full border border-slate-200 px-4 py-2 text-xs font-semibold text-slate-600">Export</button>
     </div>
-    <div class="mt-4 grid gap-3">
+    <div class="mt-4 grid gap-3" *ngIf="regions.length; else noRegions">
       <div *ngFor="let region of regions" class="flex flex-wrap items-center justify-between gap-2 rounded-2xl bg-white p-4 text-sm shadow-sm">
         <div>
           <p class="font-semibold text-slate-900">{{ region.region }}</p>
@@ -58,15 +75,18 @@
         <span class="pill pill-ink">{{ region.sla }}</span>
       </div>
     </div>
+    <ng-template #noRegions>
+      <div class="app-state-block mt-4">No regional performance records found.</div>
+    </ng-template>
   </div>
 
-  <div class="grid gap-6 lg:grid-cols-2">
+  <div class="grid gap-5 lg:grid-cols-2 lg:gap-6">
     <div class="card-surface rounded-3xl p-6">
-      <div class="flex items-center justify-between">
+      <div class="app-section-head">
         <h2 class="text-lg font-semibold text-slate-900">Service catalog</h2>
-        <button class="rounded-full border border-slate-200 px-4 py-2 text-xs font-semibold text-slate-600">Add service</button>
+        <button (click)="addService()" class="rounded-full border border-slate-200 px-4 py-2 text-xs font-semibold text-slate-600">Add service</button>
       </div>
-      <div class="mt-4 grid gap-3">
+      <div class="mt-4 grid gap-3" *ngIf="services.length; else noServices">
         <div *ngFor="let service of services" class="rounded-2xl bg-white p-4 text-sm shadow-sm">
           <div class="flex flex-wrap items-center justify-between gap-2">
             <p class="font-semibold text-slate-900">{{ service.name }}</p>
@@ -77,23 +97,29 @@
           </div>
         </div>
       </div>
+      <ng-template #noServices>
+        <div class="app-state-block mt-4">Service catalog is currently empty.</div>
+      </ng-template>
     </div>
 
     <div class="card-surface rounded-3xl p-6">
-      <div class="flex items-center justify-between">
+      <div class="app-section-head">
         <h2 class="text-lg font-semibold text-slate-900">Reporting center</h2>
-        <button class="rounded-full border border-slate-200 px-4 py-2 text-xs font-semibold text-slate-600">Generate report</button>
+        <button (click)="generateReportTemplate()" class="rounded-full border border-slate-200 px-4 py-2 text-xs font-semibold text-slate-600">Generate report</button>
       </div>
-      <div class="mt-4 grid gap-3">
+      <div class="mt-4 grid gap-3" *ngIf="reports.length; else noReports">
         <div *ngFor="let report of reports" class="rounded-2xl bg-white p-4 text-sm shadow-sm">
           <p class="font-semibold text-slate-900">{{ report.name }}</p>
           <p class="mt-1 text-xs text-slate-500">{{ report.cadence }} · {{ report.format }}</p>
           <div class="mt-3 flex gap-2">
-            <button class="rounded-full bg-brand-600 px-3 py-2 text-xs font-semibold text-white">Run</button>
-            <button class="rounded-full border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-600">Export</button>
+            <button (click)="runReport(report)" class="rounded-full bg-brand-600 px-3 py-2 text-xs font-semibold text-white">Run</button>
+            <button (click)="exportReport(report)" class="rounded-full border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-600">Export</button>
           </div>
         </div>
       </div>
+      <ng-template #noReports>
+        <div class="app-state-block mt-4">No report templates available.</div>
+      </ng-template>
     </div>
   </div>
 </section>

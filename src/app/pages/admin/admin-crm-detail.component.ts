@@ -1,11 +1,11 @@
 import { Component } from '@angular/core';
-import { NgFor } from '@angular/common';
+import { NgFor, NgIf } from '@angular/common';
 import { crmContactLog, crmContracts, crmSites, crmCustomers } from '../../core/mock-data';
 
 @Component({
   selector: 'app-admin-crm-detail',
   standalone: true,
-  imports: [NgFor],
+  imports: [NgFor, NgIf],
   templateUrl: './admin-crm-detail.component.html'
 })
 export class AdminCrmDetailComponent {

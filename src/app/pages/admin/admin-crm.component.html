@@ -1,19 +1,19 @@
-<section class="grid gap-6">
-  <div class="flex flex-wrap items-center justify-between gap-3">
+<section class="grid gap-5 sm:gap-6">
+  <div class="app-section-head">
     <div>
-      <p class="text-sm uppercase tracking-[0.2em] text-slate-400">CRM</p>
-      <h2 class="text-2xl font-semibold text-slate-900">Customer accounts</h2>
-      <p class="mt-2 text-sm text-slate-500">Primary focus: commercial accounts and multi-site managers.</p>
+      <p class="app-kicker">CRM</p>
+      <h2 class="app-title">Customer accounts</h2>
+      <p class="app-subtitle">Primary focus: commercial accounts and multi-site managers.</p>
     </div>
-    <div class="flex flex-wrap gap-2">
-      <input class="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm" placeholder="Search customers" />
+    <div class="app-action-row">
+      <input class="rounded-full bg-white px-4 py-2 text-sm" placeholder="Search customers" />
       <button class="rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700">Filter</button>
       <button class="rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700">Export</button>
       <button class="rounded-full bg-brand-600 px-4 py-2 text-sm font-semibold text-white">Add account</button>
     </div>
   </div>
 
-  <div class="grid gap-4">
+  <div class="grid gap-4" *ngIf="customers.length; else noCustomers">
     <div *ngFor="let customer of customers" class="card-surface rounded-2xl p-5">
       <div class="flex flex-wrap items-center justify-between gap-2">
         <div>
@@ -32,4 +32,8 @@
       </div>
     </div>
   </div>
+
+  <ng-template #noCustomers>
+    <div class="app-state-block">No CRM customer accounts found.</div>
+  </ng-template>
 </section>

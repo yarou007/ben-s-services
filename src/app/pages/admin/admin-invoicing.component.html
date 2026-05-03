@@ -1,15 +1,17 @@
-<section class="grid gap-6">
-  <div class="flex flex-wrap items-center justify-between gap-3">
+<section class="grid gap-5 sm:gap-6">
+  <div class="app-section-head">
     <div>
-      <p class="text-sm uppercase tracking-[0.2em] text-slate-400">Invoicing</p>
-      <h2 class="text-2xl font-semibold text-slate-900">Financial overview</h2>
+      <p class="app-kicker">Invoicing</p>
+      <h2 class="app-title">Financial overview</h2>
+      <p class="app-subtitle">Track invoice lifecycle, payment status, and sending channels.</p>
     </div>
-    <div class="flex flex-wrap gap-2">
+    <div class="app-action-row">
       <button class="rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700">Export CSV</button>
       <button class="rounded-full bg-brand-600 px-4 py-2 text-sm font-semibold text-white">Generate invoice</button>
     </div>
   </div>
-  <div class="grid gap-4">
+
+  <div class="grid gap-4" *ngIf="invoices.length; else noInvoices">
     <div *ngFor="let invoice of invoices" class="card-surface rounded-2xl p-5">
       <div class="flex flex-wrap items-center justify-between gap-2">
         <div>
@@ -18,7 +20,7 @@
         </div>
         <span [ngClass]="statusClass(invoice.status)">{{ invoice.status }}</span>
       </div>
-      <div class="mt-3 flex flex-wrap items-center justify-between gap-2 text-sm text-slate-600">
+      <div class="mt-3 grid gap-2 text-sm text-slate-600 sm:grid-cols-2 xl:grid-cols-4">
         <span>Amount: {{ invoice.amount }}</span>
         <span>Due: {{ invoice.due }}</span>
         <span>Method: {{ invoice.method }}</span>
@@ -26,4 +28,8 @@
       </div>
     </div>
   </div>
+
+  <ng-template #noInvoices>
+    <div class="app-state-block">No invoices are available to display.</div>
+  </ng-template>
 </section>

@@ -1,57 +1,69 @@
-<section class="mx-auto max-w-4xl">
-  <div class="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
-    <div class="card-surface rounded-3xl p-8">
-      <p class="text-sm uppercase tracking-[0.2em] text-slate-400">Request a service</p>
-      <h2 class="mt-2 text-2xl font-semibold text-slate-900">We will connect you with a certified technician</h2>
+<section class="mx-auto max-w-5xl">
+  <div class="grid gap-5 lg:grid-cols-[1.2fr_0.8fr] lg:gap-6">
+    <div class="card-surface rounded-3xl p-5 sm:p-7">
+      <div class="app-section-head">
+        <div>
+          <p class="app-kicker">Request a Service</p>
+          <h2 class="app-title">We will connect you with a certified technician</h2>
+          <p class="app-subtitle">Provide clear issue details for faster dispatch and better ETA accuracy.</p>
+        </div>
+      </div>
+
       <form class="mt-6 grid gap-4">
         <div class="grid gap-4 md:grid-cols-2">
           <label class="grid gap-2 text-sm font-semibold text-slate-600">
             Full name
-            <input class="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm" placeholder="John Smith" />
+            <input class="px-4 py-3 text-sm" placeholder="John Smith" />
           </label>
           <label class="grid gap-2 text-sm font-semibold text-slate-600">
             Phone number
-            <input class="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm" placeholder="(555) 123-4567" />
+            <input class="px-4 py-3 text-sm" placeholder="(555) 123-4567" />
           </label>
         </div>
+
         <div class="grid gap-4 md:grid-cols-2">
           <label class="grid gap-2 text-sm font-semibold text-slate-600">
             Email
-            <input class="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm" placeholder="john@example.com" />
+            <input class="px-4 py-3 text-sm" placeholder="john@example.com" />
           </label>
           <label class="grid gap-2 text-sm font-semibold text-slate-600">
             Service type
-            <select class="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm">
+            <select class="px-4 py-3 text-sm">
               <option>Locksmith</option>
               <option>Glass Repair</option>
             </select>
           </label>
         </div>
+
         <label class="grid gap-2 text-sm font-semibold text-slate-600">
           Service description
-          <textarea rows="4" class="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm" placeholder="Please describe the issue or service you need..."></textarea>
+          <textarea rows="4" class="px-4 py-3 text-sm" placeholder="Please describe the issue or service you need..."></textarea>
         </label>
+
         <label class="grid gap-2 text-sm font-semibold text-slate-600">
           Service address
-          <input class="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm" placeholder="123 Main St, New York, NY 10001" />
+          <input class="px-4 py-3 text-sm" placeholder="123 Main St, New York, NY 10001" />
         </label>
+
         <div class="grid gap-4 md:grid-cols-2">
           <label class="grid gap-2 text-sm font-semibold text-slate-600">
             Preferred date
-            <input type="date" class="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm" />
+            <input type="date" class="px-4 py-3 text-sm" />
           </label>
           <label class="grid gap-2 text-sm font-semibold text-slate-600">
             Preferred time
-            <input type="time" class="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm" />
+            <input type="time" class="px-4 py-3 text-sm" />
           </label>
         </div>
+
         <label class="grid gap-2 text-sm font-semibold text-slate-600">
           Urgency level
-          <select class="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm">
+          <select class="px-4 py-3 text-sm">
             <option>Non-Emergency</option>
             <option>Emergency</option>
           </select>
         </label>
+
         <div class="rounded-2xl border border-dashed border-slate-300 bg-white px-4 py-6 text-center text-sm text-slate-500">
           <p class="font-semibold text-slate-700">Upload photos/videos (optional)</p>
           <p class="mt-1 text-xs">Drag and drop PNG/JPG/MP4 up to 10MB</p>
@@ -59,7 +71,8 @@
             Choose files
           </button>
         </div>
-        <div class="flex flex-wrap gap-3">
+
+        <div class="mt-1 flex flex-wrap gap-3">
           <a
             routerLink="/customer/track-request"
             class="flex-1 rounded-2xl bg-brand-600 px-4 py-3 text-center text-sm font-semibold text-white"
@@ -73,13 +86,14 @@
             Cancel
           </a>
         </div>
+
         <p class="text-xs text-slate-500">Mock submission only. Real integration will use .NET + MySQL.</p>
       </form>
     </div>
 
     <div class="grid gap-4">
       <div class="card-surface rounded-3xl p-6">
-        <p class="text-sm uppercase tracking-[0.2em] text-slate-400">What happens next</p>
+        <p class="app-kicker">What Happens Next</p>
         <ul class="mt-4 grid gap-3 text-sm text-slate-600">
           <li class="rounded-2xl bg-white p-3 shadow-sm">Request received and validated by the service desk.</li>
           <li class="rounded-2xl bg-white p-3 shadow-sm">Admin assigns the best technician based on location and availability.</li>
@@ -90,10 +104,14 @@
           <p class="text-xs text-slate-300">15-30 minutes for emergency requests</p>
         </div>
       </div>
+
       <div class="card-surface rounded-3xl p-6">
-        <p class="text-sm uppercase tracking-[0.2em] text-slate-400">Map preview</p>
-        <div class="mt-4 flex h-40 items-center justify-center rounded-2xl bg-slate-100 text-xs text-slate-500">
-          Map integration placeholder
+        <div class="flex items-center justify-between gap-2">
+          <p class="app-kicker">Map Preview</p>
+          <span class="pill pill-ink">Loading</span>
+        </div>
+        <div class="mt-4 flex h-44 items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-4 text-center text-xs text-slate-500">
+          Map integration placeholder. If the map fails to load, address validation remains available through manual entry.
         </div>
       </div>
     </div>

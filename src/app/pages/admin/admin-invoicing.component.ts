@@ -1,11 +1,11 @@
 import { Component } from '@angular/core';
-import { NgFor, NgClass } from '@angular/common';
+import { NgFor, NgClass, NgIf } from '@angular/common';
 import { invoices } from '../../core/mock-data';
 
 @Component({
   selector: 'app-admin-invoicing',
   standalone: true,
-  imports: [NgFor, NgClass],
+  imports: [NgFor, NgClass, NgIf],
   templateUrl: './admin-invoicing.component.html'
 })
 export class AdminInvoicingComponent {

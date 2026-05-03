@@ -1,12 +1,12 @@
 import { Component } from '@angular/core';
-import { NgFor, NgClass } from '@angular/common';
+import { NgFor, NgClass, NgIf } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { adminRequests, dispatchProviders, dispatchSteps, requestActivity } from '../../core/mock-data';
 
 @Component({
   selector: 'app-admin-request-detail',
   standalone: true,
-  imports: [NgFor, NgClass, RouterLink],
+  imports: [NgFor, NgClass, NgIf, RouterLink],
   templateUrl: './admin-request-detail.component.html'
 })
 export class AdminRequestDetailComponent {

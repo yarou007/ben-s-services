@@ -1,16 +1,17 @@
-<section class="grid gap-6">
-  <div class="flex flex-wrap items-center justify-between gap-3">
+<section class="grid gap-5 sm:gap-6">
+  <div class="app-section-head">
     <div>
-      <p class="text-sm uppercase tracking-[0.2em] text-slate-400">Reports</p>
-      <h2 class="text-2xl font-semibold text-slate-900">Reporting & exports</h2>
+      <p class="app-kicker">Reports</p>
+      <h2 class="app-title">Reporting & exports</h2>
+      <p class="app-subtitle">Generate recurring insights and one-click operational exports.</p>
     </div>
-    <div class="flex flex-wrap gap-2">
+    <div class="app-action-row">
       <button class="rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700">Export all</button>
       <button class="rounded-full bg-brand-600 px-4 py-2 text-sm font-semibold text-white">Create report</button>
     </div>
   </div>
 
-  <div class="grid gap-4">
+  <div class="grid gap-4" *ngIf="reports.length; else noReports">
     <div *ngFor="let report of reports" class="card-surface rounded-2xl p-5">
       <div class="flex flex-wrap items-center justify-between gap-2">
         <div>
@@ -26,4 +27,8 @@
       </div>
     </div>
   </div>
+
+  <ng-template #noReports>
+    <div class="app-state-block">No report definitions found.</div>
+  </ng-template>
 </section>

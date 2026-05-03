@@ -1,12 +1,12 @@
 import { Component } from '@angular/core';
-import { NgFor } from '@angular/common';
+import { NgFor, NgIf } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { customerBadges, customerPromotions, customerTimeline, featuredServices } from '../../core/mock-data';
 
 @Component({
   selector: 'app-customer-home',
   standalone: true,
-  imports: [NgFor, RouterLink],
+  imports: [NgFor, NgIf, RouterLink],
   templateUrl: './customer-home.component.html'
 })
 export class CustomerHomeComponent {

@@ -1,13 +1,13 @@
-<section class="grid gap-8">
+<section class="grid gap-6 sm:gap-8">
   <div class="card-surface rounded-3xl p-6">
-    <p class="text-sm uppercase tracking-[0.2em] text-slate-400">Help Center</p>
-    <h2 class="mt-2 text-2xl font-semibold text-slate-900">Guidance for commercial teams</h2>
-    <p class="mt-2 text-sm text-slate-500">
+    <p class="app-kicker">Help Center</p>
+    <h2 class="app-title">Guidance for commercial teams</h2>
+    <p class="app-subtitle">
       Learn how dispatch works, what information we need, and how to keep your sites compliant.
     </p>
   </div>
 
-  <div class="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
+  <div class="grid gap-5 lg:grid-cols-[1.15fr_0.85fr] lg:gap-6">
     <div class="card-surface rounded-3xl p-6">
       <h3 class="text-lg font-semibold text-slate-900">How it works</h3>
       <ol class="mt-4 grid gap-3 text-sm text-slate-600">
@@ -22,12 +22,15 @@
 
     <div class="card-surface rounded-3xl p-6">
       <h3 class="text-lg font-semibold text-slate-900">FAQs</h3>
-      <div class="mt-4 grid gap-3">
+      <div class="mt-4 grid gap-3" *ngIf="faqs.length; else noFaqs">
         <div *ngFor="let faq of faqs" class="rounded-2xl bg-white p-4 text-sm shadow-sm">
           <p class="font-semibold text-slate-900">{{ faq.question }}</p>
           <p class="mt-2 text-xs text-slate-500">{{ faq.answer }}</p>
         </div>
       </div>
+      <ng-template #noFaqs>
+        <div class="app-state-block mt-4">No FAQ entries are available at this moment.</div>
+      </ng-template>
     </div>
   </div>
 </section>
